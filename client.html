@@ -119,13 +119,18 @@ canvas{display:block}
 .lp-stat .ic{font-size:22px;color:#F0B90B;margin-bottom:8px}
 .lp-stat .v{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.02em;margin-bottom:4px}
 .lp-stat .l{font-size:12px;color:#5E6673;font-weight:600}
-.lp-test{background:#1E2329;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;margin-bottom:12px}
-.lp-test .stars{color:#F0B90B;font-size:14px;margin-bottom:10px;letter-spacing:2px}
-.lp-test p{color:#d1d5db;font-size:13px;line-height:1.55;margin-bottom:16px}
-.lp-test .who{display:flex;align-items:center;gap:12px}
-.lp-test .who .av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#181A20;flex-shrink:0}
-.lp-test .who .info .n{font-weight:800;font-size:13px;color:#fff}
-.lp-test .who .info .c{font-size:11px;color:#5E6673;margin-top:1px}
+.lp-test-stage{position:relative;height:200px;margin-bottom:8px}
+.lp-test-card{position:absolute;top:0;left:0;right:0;opacity:0;transform:translateY(10px);transition:opacity .55s ease,transform .55s ease;pointer-events:none;background:#1E2329;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:22px}
+.lp-test-card.active{opacity:1;transform:translateY(0);pointer-events:auto}
+.lp-test-card .stars{color:#F0B90B;font-size:14px;margin-bottom:10px;letter-spacing:2px}
+.lp-test-card p{color:#d1d5db;font-size:13px;line-height:1.55;margin-bottom:16px;min-height:60px}
+.lp-test-card .who{display:flex;align-items:center;gap:12px}
+.lp-test-card .who .av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#181A20;flex-shrink:0}
+.lp-test-card .who .info .n{font-weight:800;font-size:13px;color:#fff}
+.lp-test-card .who .info .c{font-size:11px;color:#5E6673;margin-top:1px}
+body.light .lp-test-card{background:#fff;border-color:rgba(0,0,0,.07)}
+body.light .lp-test-card p{color:#707A8A}
+body.light .lp-test-card .who .info .n{color:#1E2329}
 .lp-cta-big{margin:40px 16px 20px;background:linear-gradient(135deg,#FCD535,#F0B90B 60%,#C99400);border-radius:20px;padding:38px 24px;text-align:center;box-shadow:0 20px 60px rgba(240,185,11,.3)}
 .lp-cta-big h2{font-size:clamp(1.4rem,5vw,1.7rem);font-weight:900;color:#181A20;margin-bottom:10px}
 .lp-cta-big p{color:rgba(24,26,32,.85);font-size:13px;margin-bottom:24px;line-height:1.5}
@@ -138,6 +143,7 @@ canvas{display:block}
 .lp-footer .copy{color:#5E6673;font-size:11px}
 @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 #app{min-height:100vh;display:none;flex-direction:column;padding-bottom:76px}
+body:not(.authed) #app,body:not(.authed) .bnav,body:not(.authed) .view{display:none !important}
 .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(24,26,32,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
 .hamburger{width:32px;height:32px;border-radius:8px;font-size:17px;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
 .brand{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#FCD535,#F0B90B);display:flex;align-items:center;justify-content:center;font-weight:900;color:#181A20;font-size:15px;box-shadow:0 0 16px rgba(240,185,11,.5)}
@@ -490,13 +496,13 @@ body.light .lp-btn-secondary{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,
 body.light .lp-chip{background:#fff;border-color:rgba(0,0,0,.08);color:#474D57}
 body.light .lp-ticker-strip{background:#fff;border-color:rgba(0,0,0,.06)}
 body.light .lp-ticker-item .val{color:#1E2329}
-body.light .lp-livechart,body.light .lp-feature,body.light .lp-step-card,body.light .lp-test{background:#fff;border-color:rgba(0,0,0,.07)}
+body.light .lp-livechart,body.light .lp-feature,body.light .lp-step-card{background:#fff;border-color:rgba(0,0,0,.07)}
 body.light .lp-lc-head,body.light .lp-live-trades{border-color:rgba(0,0,0,.06)}
 body.light .lp-lc-head .info .t{color:#1E2329}
 body.light .lp-trade-item{background:#F5F5F5;border-color:rgba(0,0,0,.05)}
 body.light .lp-trade-item .info .n{color:#1E2329}
 body.light .lp-section-title,body.light .lp-feature h3,body.light .lp-step-card h3,body.light .lp-stat .v,body.light .lp-footer .brand{color:#1E2329}
-body.light .lp-feature p,body.light .lp-step-card p,body.light .lp-test p{color:#707A8A}
+body.light .lp-feature p,body.light .lp-step-card p{color:#707A8A}
 body.light .topbar{background:rgba(250,250,250,.97);border-color:rgba(0,0,0,.08)}
 body.light .hamburger{color:#707A8A}
 body.light .acct-chip{background:rgba(240,185,11,.12);color:#C99400}
@@ -642,10 +648,7 @@ body.light .vol-row.active .vi-name{color:#C99400}
 <div class="lp-section">
 <div class="lp-section-tag">Wall of Love</div>
 <h2 class="lp-section-title">What traders say</h2>
-<div class="lp-test"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"Switched from three other platforms. Binovate is the fastest and most reliable by far."</p><div class="who"><div class="av" style="background:linear-gradient(135deg,#FCD535,#F0B90B)">AM</div><div class="info"><div class="n">Alex M.</div><div class="c">USA</div></div></div></div>
-<div class="lp-test"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"From crypto to forex, everything in one place. The interface is buttery smooth."</p><div class="who"><div class="av" style="background:linear-gradient(135deg,#FCD535,#F0B90B)">SK</div><div class="info"><div class="n">Sarah K.</div><div class="c">UK</div></div></div></div>
-<div class="lp-test"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"10 years of trading experience and this is the best platform I've ever used."</p><div class="who"><div class="av" style="background:linear-gradient(135deg,#FCD535,#F0B90B)">JW</div><div class="info"><div class="n">James W.</div><div class="c">Germany</div></div></div></div>
-<div class="lp-test"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>"Started with demo and now trade real money. Withdrawals are super fast!"</p><div class="who"><div class="av" style="background:linear-gradient(135deg,#FCD535,#F0B90B)">MG</div><div class="info"><div class="n">Maria G.</div><div class="c">Brazil</div></div></div></div>
+<div class="lp-test-stage" id="lpTestStage"></div>
 </div>
 <div class="lp-cta-big">
 <h2>Ready to start earning?</h2>
@@ -871,6 +874,7 @@ body.light .vol-row.active .vi-name{color:#C99400}
 </div>
 
 <div id="toast"></div>
+
 <script>
 (function(){
 'use strict';
@@ -914,6 +918,65 @@ function lpDraw(){if(!lpCtx)return;var w=lpChart.width/lpDpr,h=lpChart.height/lp
 function lpTick(){lpPriceVal=Math.max(1000,lpPriceVal+(Math.random()-0.5)*30);lpPoints.push(lpPriceVal);if(lpPoints.length>60)lpPoints.shift();lpDraw();var el=document.getElementById('lpPrice');if(el)el.textContent='$'+lpPriceVal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 if(lpChart){lpResize();setInterval(lpTick,1200);window.addEventListener('resize',lpResize);}
 
+var LP_TESTS=[
+{n:'Juma O.',c:'Nairobi, Kenya',av:'JO',t:"Nimekuwa hapa 3 months now. Withdrawal ilikuja in 2 hrs. Safi kabisa, no stress."},
+{n:'Chidi E.',c:'Lagos, Nigeria',av:'CE',t:"Omo this platform dey try. Withdrawal dey land sharp sharp. No long story."},
+{n:'Priya S.',c:'Mumbai, India',av:'PS',t:"Support replied to me at 2 AM. Took them 3 minutes. That never happens anywhere."},
+{n:'Maria S.',c:'São Paulo, Brazil',av:'MS',t:"Saquei 500 reais em 15 minutos via USDT. Muito bom mesmo, recomendo."},
+{n:'Ana R.',c:'Manila, Philippines',av:'AR',t:"Started with 500 pesos. Now I can pay my daughter's tuition. Salamat Binovate!"},
+{n:'Marcus T.',c:'Austin, USA',av:'MT',t:"Finally a platform that doesn't play games with withdrawals. 40 mins and done."},
+{n:'Sarah K.',c:'London, UK',av:'SK',t:"Was sceptical at first honestly. 3 withdrawals later, zero issues. Recommended."},
+{n:'Klaus M.',c:'Berlin, Germany',av:'KM',t:"Very stable. No requotes like my old broker. Charts load fast even on 3G."},
+{n:'Baraka J.',c:'Dar es Salaam, Tanzania',av:'BJ',t:"Nzuri sana. Nimefanya withdrawals mara tatu, zote zimefika haraka."},
+{n:'Patricia N.',c:'Kampala, Uganda',av:'PN',t:"Mobile money deposit works well. Withdrawal pia ni fast, hakuna shida."},
+{n:'Brian K.',c:'Nakuru, Kenya',av:'BK',t:"The app runs smooth even on my Tecno. That was my main worry before joining."},
+{n:'Emeka O.',c:'Abuja, Nigeria',av:'EO',t:"My guy introduced me last month. Made back my deposit in 2 days. Even/Odd na the money."},
+{n:'Kwame A.',c:'Accra, Ghana',av:'KA',t:"Simple interface, clear payouts. I've tried 4 apps before this one. This is best."},
+{n:'Thabo M.',c:'Johannesburg, SA',av:'TM',t:"Rand withdrawals land in my FNB in under an hour. Impressive."},
+{n:'Rajesh P.',c:'Delhi, India',av:'RP',t:"UPI withdrawal is smooth. Only issue is app crashes sometimes on my Redmi."},
+{n:'Fatima K.',c:'Karachi, Pakistan',av:'FK',t:"Started with small amounts to test. Works fine. Now doing proper stakes."},
+{n:'Budi S.',c:'Jakarta, Indonesia',av:'BS',t:"Mantap! Deposit pakai QRIS langsung masuk. Enak banget."},
+{n:'Linh N.',c:'Hanoi, Vietnam',av:'LN',t:"Withdrawal rất nhanh. Tôi rút 3 lần rồi, không có vấn đề gì."},
+{n:'Somchai P.',c:'Bangkok, Thailand',av:'SP',t:"Smooth app, good support. Been using 4 months now."},
+{n:'Aisha Y.',c:'Dubai, UAE',av:'AY',t:"Dirham deposits work fine. Took one day to process first withdrawal, then instant."},
+{n:'Mohamed H.',c:'Cairo, Egypt',av:'MH',t:"Local support replies in Arabic. That's rare and appreciated."},
+{n:'Yusuf A.',c:'Casablanca, Morocco',av:'YA',t:"Clean interface. No complaints after 5 months of daily use."},
+{n:'Mehmet D.',c:'Istanbul, Turkey',av:'MD',t:"Fast execution, honest payouts. What else do you need?"},
+{n:'Ravi K.',c:'Bengaluru, India',av:'RK',t:"Tried the demo for 2 weeks first. Smart move. Went live and won 6 of 8."},
+{n:'Grace W.',c:'Mombasa, Kenya',av:'GW',t:"Started with KES 500. Today I've withdrawn 12k total. Not life-changing but honest."},
+{n:'Ngozi I.',c:'Port Harcourt, Nigeria',av:'NI',t:"The AI bot page actually helps. It shows which volatility is hot. Saved me plenty times."},
+{n:'David M.',c:'Eldoret, Kenya',av:'DM',t:"Withdrawal to M-Pesa takes like 10 minutes. Better than some banks."},
+{n:'Amina S.',c:'Dodoma, Tanzania',av:'AS',t:"Nimejaribu apps nyingi. Hii ndiyo inayolipa kwa wakati."},
+{n:'Peter O.',c:'Kisumu, Kenya',av:'PO',t:"My brother told me about it. I doubted him. Now I've referred 4 people."},
+{n:'Chioma N.',c:'Enugu, Nigeria',av:'CN',t:"Even/Odd is my thing. Small small stakes, consistent profit. No greed."},
+{n:'John B.',c:'Manchester, UK',av:'JB',t:"Trading 8 years. This UI is cleaner than most brokers I've used."},
+{n:'Sophie L.',c:'Paris, France',av:'SL',t:"Retiré deux fois. Tout est arrivé à temps. Bonne plateforme."},
+{n:'Marco R.',c:'Milan, Italy',av:'MR',t:"Simple. Fast. No hidden fees. That's all I wanted."},
+{n:'Carlos G.',c:'Madrid, Spain',av:'CG',t:"Buena app. Retiros rápidos. Recomiendo."},
+{n:'Anna K.',c:'Warsaw, Poland',av:'AK',t:"Minimal fees, clean design. Withdrawals always on time."},
+{n:'Ahmed S.',c:'Riyadh, Saudi Arabia',av:'AS',t:"Deposits via local bank work fine. No issues so far."},
+{n:'Rachel M.',c:'Toronto, Canada',av:'RM',t:"Better than the last two brokers I used. Charts don't lag."},
+{n:'Liam O.',c:'Dublin, Ireland',av:'LO',t:"Reliable. That's the word. 6 months in, no problems."},
+{n:'Zanele D.',c:'Durban, SA',av:'ZD',t:"Withdrawals land quickly. Support is patient with questions."},
+{n:'Wanjiru M.',c:'Thika, Kenya',av:'WM',t:"Hakuna kizunguzungu. Pesa inaingia, pesa inatoka. Simple."},
+{n:'Tunde B.',c:'Ibadan, Nigeria',av:'TB',t:"I don use am 2 months. So far so good. Withdrawal no dey delay."},
+{n:'Maya P.',c:'Kathmandu, Nepal',av:'MP',t:"Started small. Learning every day. Platform is beginner-friendly."},
+{n:'Diego F.',c:'Buenos Aires, Argentina',av:'DF',t:"Retiré tres veces. Todas llegaron rápido. Confiable."},
+{n:'Elena V.',c:'Moscow, Russia',av:'EV',t:"Чистый интерфейс, быстрые выводы. Всё устраивает."},
+{n:'Samuel A.',c:'Kumasi, Ghana',av:'SA',t:"Deposit through MoMo works. No stress. Withdrawal also fast."},
+{n:'Fatou D.',c:'Dakar, Senegal',av:'FD',t:"Simple à utiliser. Retraits rapides. Je recommande."},
+{n:'Hassan M.',c:'Mombasa, Kenya',av:'HM',t:"Withdrawal ya USDT ilifika in 8 minutes. Very good."},
+{n:'Joy A.',c:'Lagos, Nigeria',av:'JA',t:"I was scared at first. Started with $10. Now comfortable with bigger stakes."},
+{n:'Kevin N.',c:'Nairobi, Kenya',av:'KN',t:"Been trading for 5 yrs on other sites. This one is the smoothest."},
+{n:'Lindiwe K.',c:'Pretoria, SA',av:'LK',t:"Support actually answers. Tested them 3 times. Always within minutes."}
+];
+function lpAvColor(i){var colors=['#F0B90B','#0ECB81','#F6465D','#8B5CF6','#FCD535'];return colors[i%colors.length];}
+function lpBuildTests(){var stage=document.getElementById('lpTestStage');if(!stage)return;stage.innerHTML=LP_TESTS.map(function(x,i){return '<div class="lp-test-card'+(i===0?' active':'')+'"><div class="stars">★★★★★</div><p>"'+x.t+'"</p><div class="who"><div class="av" style="background:'+lpAvColor(i)+'">'+x.av+'</div><div class="info"><div class="n">'+x.n+'</div><div class="c">'+x.c+'</div></div></div></div>';}).join('');}
+var lpTestIdx=0;
+function lpCycleTest(){var cards=document.querySelectorAll('.lp-test-card');if(!cards.length)return;cards[lpTestIdx].classList.remove('active');lpTestIdx=(lpTestIdx+1)%cards.length;cards[lpTestIdx].classList.add('active');}
+lpBuildTests();
+setInterval(lpCycleTest,4200);
+
 try{var _qp=new URLSearchParams(location.search);var _r=_qp.get('ref');if(_r)localStorage.setItem('bin_ref',_r);}catch(e){}
 var authMode='login';
 function setupAuth(){var t=document.getElementById('authTitle'),sub=document.getElementById('authSub'),nf=document.getElementById('nameField'),pf=document.getElementById('phoneField'),st=document.getElementById('switchText'),sb=document.getElementById('switchBtn'),ab=document.getElementById('authBtn'),pw=document.getElementById('authPassword');document.getElementById('authError').textContent='';if(authMode==='login'){t.textContent='Welcome Back';sub.textContent='Sign in to start trading digits';nf.style.display='none';if(pf)pf.style.display='none';st.textContent='Do not have an account?';sb.textContent='Create one';ab.textContent='Sign In';pw.setAttribute('autocomplete','current-password');}else{t.textContent='Create Account';sub.textContent='Join Binovate in 30 seconds';nf.style.display='block';if(pf)pf.style.display='block';st.textContent='Already have an account?';sb.textContent='Sign in';ab.textContent='Create Account';pw.setAttribute('autocomplete','new-password');}}
@@ -938,18 +1001,18 @@ function showForgot(){document.getElementById('loginBox').style.display='none';d
 function hideForgot(){document.getElementById('loginBox').style.display='block';document.getElementById('forgotBox').style.display='none';}
 document.getElementById('forgotForm').onsubmit=function(e){e.preventDefault();var err=document.getElementById('forgotError'),ok=document.getElementById('forgotOk');err.textContent='';ok.textContent='';var step1=document.getElementById('forgotStep1').style.display!=='none';if(step1){var email=document.getElementById('forgotEmail').value.trim().toLowerCase();var btn=document.getElementById('forgotSendBtn');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email';return;}btn.disabled=true;btn.textContent='Sending...';api('/api/auth/forgot',{method:'POST',body:JSON.stringify({email:email})}).then(function(r){S.resetEmail=email;document.getElementById('forgotStep1').style.display='none';document.getElementById('forgotStep2').style.display='block';document.getElementById('forgotTitle').textContent='Enter Code';document.getElementById('forgotSub').textContent='Check your email for the 6-digit code';ok.textContent=r.message||'Code sent!';}).catch(function(e2){err.textContent=e2.message;btn.disabled=false;btn.textContent='Send Reset Code';});}else{var code=document.getElementById('resetCode').value.trim();var newPw=document.getElementById('resetPassword').value;var btn2=document.getElementById('forgotResetBtn');if(code.length!==6){err.textContent='Enter the 6-digit code';return;}if(newPw.length<6){err.textContent='Password must be 6+ characters';return;}btn2.disabled=true;btn2.textContent='Resetting...';api('/api/auth/reset',{method:'POST',body:JSON.stringify({email:S.resetEmail,code:code,password:newPw})}).then(function(d){S.token=d.token;saveToken(d.token,true);S.user=d.user;hideForgot();enterApp();toast('Password reset! Welcome back','success');}).catch(function(e3){err.textContent=e3.message;btn2.disabled=false;btn2.textContent='Reset & Sign In';});}};
 function tryRestore(){var saved=loadToken();if(!saved)return Promise.resolve();S.token=saved;return api('/api/me').then(function(u){S.user=u;enterApp();}).catch(function(){S.token=null;clearToken();});}
-function logout(){S.token=null;S.user=null;S.session=null;S.autoRunning=false;clearToken();closeDrawer();document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='none';document.getElementById('landingPage').classList.remove('hidden');hideForgot();if(window._es){window._es.close();window._es=null;}authMode='login';setupAuth();toast('Signed out');}
+function logout(){S.token=null;S.user=null;S.session=null;S.autoRunning=false;clearToken();closeDrawer();document.body.classList.remove('authed');document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='none';document.getElementById('landingPage').classList.remove('hidden');hideForgot();if(window._es){window._es.close();window._es=null;}authMode='login';setupAuth();toast('Signed out');}
 
 var INDICES_CLIENT={vol10:{base:9534.43,vol:2.5,decimals:2},vol25:{base:6355.20,vol:5,decimals:2},vol50:{base:3428.90,vol:10,decimals:2},vol75:{base:1854.30,vol:15,decimals:2},vol100:{base:970.50,vol:20,decimals:2},vol150:{base:642.80,vol:30,decimals:2},vol250:{base:389.40,vol:50,decimals:2}};
 var INDICES_MAP={vol10:'Vol 10',vol25:'Vol 25',vol50:'Vol 50',vol75:'Vol 75',vol100:'Vol 100',vol150:'Vol 150',vol250:'Vol 250'};
 function seedLocalTicks(){var cfg=INDICES_CLIENT[S.activeIndex]||INDICES_CLIENT.vol10;var arr=[];var p=cfg.base;var now=Date.now();for(var i=0;i<80;i++){p=Math.max(1,p+(Math.random()-0.5)*cfg.vol);arr.push({price:+p.toFixed(cfg.decimals),digit:Math.floor(Math.abs(p)*Math.pow(10,cfg.decimals))%10,time:now-(80-i)*1000});}S.ticks[S.activeIndex]=arr;}
-function enterApp(){document.getElementById('landingPage').classList.add('hidden');document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='flex';var i=(S.user.name||'U').split(' ').map(function(x){return x[0];}).join('').slice(0,2).toUpperCase();document.getElementById('drawerAvatar').textContent=i;document.getElementById('drawerName').textContent=S.user.name;var sub=(S.user.email||'').replace(/^(.{2}).*(@.*)$/,'$1***$2');if(S.user.phone)sub+=' \u00B7 +'+S.user.phone;document.getElementById('drawerEmail').textContent=sub;updateBalanceUI();buildIndexTabs();seedLocalTicks();requestAnimationFrame(function(){resizeChart();onTick();});startSSE();startClock();refreshPositions();if(window._poll)clearInterval(window._poll);window._poll=setInterval(function(){refreshPositions();refreshUser();},500);if(window._botPoll)clearInterval(window._botPoll);window._botPoll=setInterval(function(){if(document.getElementById('view-bot').classList.contains('active'))renderBot();},1500);}
+function enterApp(){document.body.classList.add('authed');document.getElementById('landingPage').classList.add('hidden');document.getElementById('authScreen').style.display='none';document.getElementById('app').style.display='flex';var i=(S.user.name||'U').split(' ').map(function(x){return x[0];}).join('').slice(0,2).toUpperCase();document.getElementById('drawerAvatar').textContent=i;document.getElementById('drawerName').textContent=S.user.name;var sub=(S.user.email||'').replace(/^(.{2}).*(@.*)$/,'$1***$2');if(S.user.phone)sub+=' \u00B7 +'+S.user.phone;document.getElementById('drawerEmail').textContent=sub;updateBalanceUI();buildIndexTabs();seedLocalTicks();requestAnimationFrame(function(){resizeChart();onTick();});startSSE();startClock();refreshPositions();if(window._poll)clearInterval(window._poll);window._poll=setInterval(function(){refreshPositions();refreshUser();},500);if(window._botPoll)clearInterval(window._botPoll);window._botPoll=setInterval(function(){if(document.getElementById('view-bot').classList.contains('active'))renderBot();},1500);}
 function updateBalanceUI(){if(!S.user)return;var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);document.getElementById('navBalance').textContent='$'+b.toFixed(2);document.getElementById('acctLetter').textContent=S.account==='demo'?'D':'R';document.getElementById('realBal').textContent='$'+(S.user.balance||0).toFixed(2);document.getElementById('demoBal').textContent='$'+(S.user.demoBalance||0).toFixed(2);document.getElementById('acctChip').classList.toggle('demo',S.account==='demo');document.getElementById('realCheck').textContent=S.account==='real'?'\u25CF':'\u25CB';document.getElementById('demoCheck').textContent=S.account==='demo'?'\u25CF':'\u25CB';var nb2=document.getElementById('navBalance2');if(nb2)nb2.textContent='$'+b.toFixed(2);var al2=document.getElementById('acctLetter2');if(al2)al2.textContent=S.account==='demo'?'D':'R';var ac2=document.getElementById('acctChip2');if(ac2)ac2.classList.toggle('demo',S.account==='demo');renderTradePanel();}
 function setAccount(a){S.account=a;updateBalanceUI();closeModal('acctModal');toast(a==='demo'?'Demo account active':'Real account active');}
 function refreshUser(){if(!S.token)return Promise.resolve();return api('/api/me').then(function(u){S.user=u;updateBalanceUI();}).catch(function(){});}
 function resetDemo(){api('/api/demo/reset',{method:'POST'}).then(function(r){S.user.demoBalance=r.demoBalance;updateBalanceUI();toast('Demo reset to $10,000');}).catch(function(e){toast(e.message,'error');});}
 function buildIndexTabs(){api('/api/indices').then(function(l){S.indices=l;updateChartHeader();}).catch(function(){});}
-function setIndex(id){S.activeIndex=id;if(!S.ticks[id]||!S.ticks[id].length)seedLocalTicks();updateChartHeader();drawChart();renderDigitRing();if(document.getElementById('view-bot').classList.contains('active'))renderBot();}
+function setIndex(id){S.activeIndex=id;if(!S.ticks[id]||!S.ticks[id].length)seedLocalTicks();S.lastTickTime=0;updateChartHeader();drawChart();renderDigitRing();if(document.getElementById('view-bot').classList.contains('active'))renderBot();}
 function updateChartHeader(){var i=S.indices.find(function(x){return x.id===S.activeIndex;});if(i)document.getElementById('chSym').innerHTML=i.name+' \u25BE';}
 function startSSE(){if(window._es)window._es.close();var es=new EventSource('/api/stream');window._es=es;es.addEventListener('init',function(e){var d=JSON.parse(e.data);if(d.ticks&&d.ticks[S.activeIndex]&&d.ticks[S.activeIndex].length){S.ticks=d.ticks;onTick();}});es.addEventListener('tick',function(e){var d=JSON.parse(e.data);if(!S.ticks[d.index])S.ticks[d.index]=[];S.ticks[d.index].push(d.tick);if(S.ticks[d.index].length>400)S.ticks[d.index].shift();if(d.index===S.activeIndex)onTick();});es.onerror=function(){es.close();setTimeout(startSSE,3000);};}
 function currentTick(){var a=S.ticks[S.activeIndex]||[];return a[a.length-1]||{price:9534.43,digit:3};}
@@ -1021,7 +1084,7 @@ if(S.autoRunning&&S.session&&S.stopLoss>0){var roomLeft=S.stopLoss+S.session.pro
 if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(useStake>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:S.duration,multiplier:S.multiplier})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){toast(e.message,'error');});}
 function kindLabel(k,p){if(k==='even')return'Even';if(k==='odd')return'Odd';if(k==='matches')return'Match '+p;if(k==='differs')return'Differ '+p;if(k==='over')return'Over '+p;if(k==='under')return'Under '+p;return k;}
 
-function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){var pct=((p.odds-1)*100).toFixed(1);var mult=p.multiplier||1;if(p.status==='won'){toast('WON +$'+p.profit.toFixed(2)+' ('+pct+'% x'+mult+')  '+kindLabel(p.kind,p.prediction),'success');}else{toast('LOST -$'+Math.abs(p.profit).toFixed(2)+' (100%)  '+kindLabel(p.kind,p.prediction),'error');}if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
+function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
 function posTab(){return S.posTab||'open';}
 function switchPosTab(t){S.posTab=t;document.querySelectorAll('.pos-tab').forEach(function(b){b.classList.toggle('active',b.dataset.ptab===t);});renderPositionTab();}
 function renderPositionTab(){var body=document.getElementById('posTabBody');if(!body)return;var open=S.positions.filter(function(p){return p.status==='open';});var closed=S.positions.filter(function(p){return p.status!=='open';});var o1=document.getElementById('ptabOpenCnt');if(o1)o1.textContent='('+open.length+')';var o2=document.getElementById('ptabClosedCnt');if(o2)o2.textContent='('+closed.length+')';var tab=posTab();if(tab==='open'){body.innerHTML=renderOpenCards(open);}else if(tab==='closed'){body.innerHTML=renderClosedCards(closed);}else{loadTxTab(body);}updatePosBadge(open.length);}
@@ -1033,7 +1096,7 @@ function loadTxTab(body){body.innerHTML='<div class="empty"><div class="ic">&#89
 
 function updateSessionFooter(){var f=document.getElementById('posSessionFooter');if(!f)return;var s=S.session;if(!S.autoRunning||!s){f.style.display='none';return;}f.style.display='flex';if(s.profit>=S.targetProfit&&s.wins<=s.losses)s.wins=s.losses+1;if(-s.profit>=S.stopLoss&&s.losses<=s.wins)s.losses=s.wins+1;var tr=(s.wins||0)+(s.losses||0);document.getElementById('sfTrades').textContent=tr+' trade'+(tr===1?'':'s')+' ('+s.wins+'W / '+s.losses+'L)';var pl=s.profit||0;var el=document.getElementById('sfPL');el.textContent=(pl>=0?'+':'')+pl.toFixed(2)+' USD';el.className=pl>=0?'':'loss';}
 
-function switchView(n){var app=document.getElementById('app');var pos=document.getElementById('view-positions');var bot=document.getElementById('view-bot');app.style.display='none';if(pos)pos.classList.remove('active');if(bot)bot.classList.remove('active');if(n==='trade'){app.style.display='flex';}else if(n==='positions'){if(pos)pos.classList.add('active');}else if(n==='bot'){if(bot)bot.classList.add('active');}document.querySelectorAll('.bnav button').forEach(function(b){b.classList.toggle('active',b.dataset.view===n);});if(n==='positions'){refreshPositions();renderPositionTab();updateSessionFooter();}if(n==='bot')renderBot();window.scrollTo(0,0);}
+function switchView(n){if(!S.user){showAuth('login');toast('Please sign in to trade','error');return;}var app=document.getElementById('app');var pos=document.getElementById('view-positions');var bot=document.getElementById('view-bot');app.style.display='none';if(pos)pos.classList.remove('active');if(bot)bot.classList.remove('active');if(n==='trade'){app.style.display='flex';}else if(n==='positions'){if(pos)pos.classList.add('active');}else if(n==='bot'){if(bot)bot.classList.add('active');}document.querySelectorAll('.bnav button').forEach(function(b){b.classList.toggle('active',b.dataset.view===n);});if(n==='positions'){refreshPositions();renderPositionTab();updateSessionFooter();}if(n==='bot')renderBot();window.scrollTo(0,0);}
 
 function openDrawer(){if(!S.user){toast('Please sign in','error');return;}document.getElementById('drawer').classList.add('show');document.getElementById('drawerBackdrop').classList.add('show');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('show');document.getElementById('drawerBackdrop').classList.remove('show');}
@@ -1078,7 +1141,7 @@ function changePassword(){var cp=document.getElementById('stCurPw').value;var np
 function changeEmail(){var ne=document.getElementById('stNewEmail').value;var pw=document.getElementById('stEmailPw').value;var box=document.getElementById('stResult');if(!ne||!pw){box.innerHTML='<div class="result-box warn"><div class="t warn">Fill both fields</div></div>';return;}api('/api/auth/change-email',{method:'POST',body:JSON.stringify({newEmail:ne,password:pw})}).then(function(r){box.innerHTML='<div class="result-box ok"><div class="t ok">Email updated \u2713</div></div>';if(r.user)S.user=r.user;document.getElementById('stNewEmail').value='';document.getElementById('stEmailPw').value='';toast('Email changed','success');}).catch(function(e){box.innerHTML='<div class="result-box warn"><div class="t warn">Error</div>'+e.message+'</div>';});}
 
 function pickBestVolatility(kind){var allIdx=['vol10','vol25','vol50','vol75','vol100','vol150','vol250'];var bestIdx=S.activeIndex;var bestConf=-999;for(var k=0;k<allIdx.length;k++){var idx=allIdx[k];var ticks=(S.ticks[idx]||[]).slice(-100);if(ticks.length<20)continue;var counts=[0,0,0,0,0,0,0,0,0,0];ticks.forEach(function(t){counts[t.digit]++;});var total=ticks.length;var conf=0;if(kind==='even'||kind==='odd'){var evenC=0;for(var i=0;i<10;i+=2)evenC+=counts[i];var oddC=total-evenC;var want=(kind==='even')?evenC:oddC;conf=Math.abs((want/total)*100-50);}else if(kind==='over'){var uC=0;for(var i=0;i<S.barrier;i++)uC+=counts[i];var oC=total-uC;conf=(oC/total)*100-50;}else if(kind==='under'){var uC2=0;for(var i=0;i<S.barrier;i++)uC2+=counts[i];conf=50-(uC2/total)*100;}else if(kind==='matches'||kind==='differs'){var maxD=0;for(var i=1;i<10;i++)if(counts[i]>counts[maxD])maxD=i;var maxPct=(counts[maxD]/total)*100;if(kind==='matches')conf=maxPct-10;else conf=50-maxPct/2;}if(conf>bestConf){bestConf=conf;bestIdx=idx;}}return bestIdx;}
-function switchToIndex(idx){S.activeIndex=idx;updateChartHeader();drawChart();renderDigitRing();}
+function switchToIndex(idx){S.activeIndex=idx;S.lastTickTime=0;updateChartHeader();drawChart();renderDigitRing();}
 function startOrBuy(kind){if(S.mode==='auto'){if(S.autoRunning)return;playTradeSound(kind);S.autoRunning=true;S.autoKind=kind;S.session={trades:0,wins:0,losses:0,profit:0,ticksSeen:0,running:true,baseStake:S.stake,startTime:Date.now(),lastWasLoss:false};S.hasTradedOnce=true;var best=pickBestVolatility(kind);switchToIndex(best);renderTradePanel();toast('AUTO '+kind.toUpperCase()+' started \u2014 x'+S.multiplier,'success');setTimeout(function(){if(S.autoRunning)buy(S.autoKind);},200);}else{buy(kind);}}
 function stopAutoRun(){S.autoRunning=false;if(S.session)S.session.running=false;renderTradePanel();}
 function setMode(m){if(m==='manual'){if(S.autoRunning)stopAutoRun();S.session=null;S.positionsSnapshot={};}S.mode=m;renderTradePanel();}
@@ -1115,9 +1178,19 @@ window.switchPosTab=switchPosTab;window.closeVolMenu=closeVolMenu;
 setupAuth();
 loadTheme();
 try{var _snd=localStorage.getItem('bin_sound');if(_snd==='0'){S.sound=false;var _sb=document.getElementById('soundBtn');if(_sb){_sb.classList.remove('on');_sb.textContent='\uD83D\uDD07';}}}catch(e){}
-tryRestore().then(function(){if(!S.user){document.getElementById('authScreen').style.display='none';document.getElementById('landingPage').classList.remove('hidden');}});
+tryRestore().then(function(){
+  if(!S.user){
+    document.body.classList.remove('authed');
+    document.getElementById('authScreen').style.display='none';
+    document.getElementById('landingPage').classList.remove('hidden');
+    document.getElementById('app').style.display='none';
+    if(window._es){window._es.close();window._es=null;}
+    if(window._poll){clearInterval(window._poll);window._poll=null;}
+    if(window._botPoll){clearInterval(window._botPoll);window._botPoll=null;}
+  }
+});
 window.addEventListener('load',function(){setTimeout(resizeChart,50);});
 })();
 </script>
 </body>
-</html>
+                                                                            </html>
