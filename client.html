@@ -983,26 +983,11 @@ document.querySelectorAll('#cTabs .c-tab').forEach(function(b){b.onclick=functio
 function payoutFor(kind,pred,stake){var o;switch(kind){case'matches':o=9.5;break;case'differs':o=1.056;break;case'even':o=1.952;break;case'odd':o=1.952;break;case'over':var ovw=9-pred;o=ovw<=0?500:+((10/ovw)*0.95).toFixed(3);break;case'under':var unw=pred;o=unw<=0?500:+((10/unw)*0.95).toFixed(3);break;default:o=1.95;}return{odds:o,payout:stake*o};}
 function renderTradePanel(){var p=document.getElementById('tradePanel');if(!p)return;var st=S.stake;var h='';
 h+='<div class="mode-toggle"><button class="'+(S.mode==='auto'?'active':'')+'" onclick="TQ.setMode(\'auto\')">AUTO</button><button class="'+(S.mode==='manual'?'active':'')+'" onclick="TQ.setMode(\'manual\')">MANUAL</button></div>';
-h+='<div class="stake-wrap"><div class="stake-label">STAKE</div><div class="stake-row"><button class="stake-btn" onclick="TQ.adjustStake(-1)">\u2212</button><div class="stake-display"><span class="cur">$</span><span id="stakeVal">'+fmtStake(st)+'</span></div><button class="stake-btn" onclick="TQ.adjustStake(1)">+</button></div></div>';
+h+='<div class="stake-wrap"><div class="stake-label">STAKE</div><div class="stake-row"><button class="stake-btn" onclick="TQ.adjustStake(-1)">\u2212</button><div class="stake-display"><span class="cur">$</span><span id="stakeVal">'+fmtStake(S.stake)+'</span></div><button class="stake-btn" onclick="TQ.adjustStake(1)">+</button></div></div>';
 h+='<div class="quick-amts">'+[0.35,1,5,10,25,50,100,500].map(function(a){return '<button class="'+(Math.abs(a-st)<0.001?'active':'')+'" onclick="TQ.setStake('+a+')">$'+fmtStake(a)+'</button>';}).join('')+'</div>';
 if(S.mode==='auto'){
 h+='<div class="tpsl"><div class="tpsl-box" onclick="TQ.editTarget()"><div class="l green">TARGET PROFIT</div><div class="v"><span class="cur">$</span>'+S.targetProfit+'</div></div><div class="tpsl-box" onclick="TQ.editStop()"><div class="l red">STOP LOSS</div><div class="v"><span class="cur">$</span>'+S.stopLoss+'</div></div><div class="tpsl-box" onclick="TQ.editMultiplier()"><div class="l amber">MULTIPLIER</div><div class="v"><span class="cur">\u00D7</span>'+S.multiplier+'</div></div></div>';
 }
-var curPL=(S.session&&S.session.profit)||0;
-var edgeNow;
-if(S.activeTab==='evenodd')edgeNow=0.952;
-else if(S.activeTab==='matches')edgeNow=8.5;
-else if(S.activeTab==='overunder'){var predNow=S.barrier;var wNow=9-predNow;edgeNow=wNow>0?(10/wNow)*0.95-1:8.5;}
-else edgeNow=0.952;
-var perWin=S.stake*edgeNow;
-var remain=S.targetProfit-curPL;
-var needTrades=remain>0&&perWin>0?Math.ceil(remain/perWin):0;
-var tpHint;
-if(curPL>=S.targetProfit){tpHint='\u2705 Target reached';}
-else if(needTrades<=0){tpHint='\u2014';}
-else{tpHint=needTrades+' trade'+(needTrades===1?'':'s')+' to TP';}
-var tabName=S.activeTab==='evenodd'?'Even/Odd':S.activeTab==='matches'?'Match/Differ':'Over/Under';
-h+='<div style="margin:0 12px 8px;padding:10px 12px;background:rgba(14,203,129,.08);border:1px solid rgba(14,203,129,.25);border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="display:flex;flex-direction:column;gap:2px"><span style="color:var(--tx3);font-weight:700;font-size:10px;letter-spacing:.06em">TO TARGET \u00B7 '+tabName.toUpperCase()+'</span><span style="color:var(--tx2);font-weight:600;font-size:10px">$'+perWin.toFixed(2)+'/win \u00B7 $'+S.stake.toFixed(2)+' stake</span></div><span style="color:var(--green);font-weight:800;font-size:14px">'+tpHint+'</span></div>';
 var ss2=(S.session||{trades:0,wins:0,losses:0,profit:0});
 if(S.session){if(ss2.profit>=S.targetProfit&&ss2.wins<=ss2.losses)ss2.wins=ss2.losses+1;if(-ss2.profit>=S.stopLoss&&ss2.losses<=ss2.wins)ss2.losses=ss2.wins+1;}
 var totalT2=ss2.wins+ss2.losses;
