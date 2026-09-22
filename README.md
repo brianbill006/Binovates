@@ -4,11 +4,10 @@ Real-time digit trading platform. Deriv-style flat stakes with a multiplier on p
 
 ## Features
 
-- Even/Odd, Matches/Differs, Over/Under
-- 7 volatility indices
-- Flat stake (Deriv style) — no martingale
-- Multiplier ×1 to ×5 applies to payout only
-- Stop Loss + Target Profit
+- Even/Odd, Matches/Differs, Over/Under — all 1-tick trades
+- 7 volatility indices (1s)
+- Multiplier ×1 to ×5 with recovery ladder
+- Stop Loss + Target Profit (with pre-trade guard)
 - Telegram withdrawal approval (✅ / ❌)
 - Referral system (15% commission)
 - Responsible Trading limits
