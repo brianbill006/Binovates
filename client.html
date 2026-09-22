@@ -581,8 +581,8 @@ body.light .vol-row .vi-name{color:#1E2329}
 body.light .vol-row.active .vi-name{color:#C99400}
 .theme-toggle{cursor:pointer;font-size:17px;line-height:1}
 </style>
-</head>
-<body>
+  </head>
+  <body>
 
 <div id="landingPage">
 <div class="lp-nav">
@@ -1092,8 +1092,10 @@ function startChartLoop(){
     if(!app||app.style.display==='none'){chartLoopRunning=false;return;}
     var dt=now-last;last=now;
     cursorAnim.sweepT=(cursorAnim.sweepT+dt);
-    // Cursor glide lasts exactly 6 seconds
-    var liveDur=6000;
+    // Cursor glide = trade duration + 2s server gap (continuous Deriv-style motion)
+    var liveDur=(S.duration||1)*(S.tickInterval||1000)+2000;
+    if(liveDur<2000)liveDur=2000;
+    if(liveDur>15000)liveDur=15000;
     var t=Math.min(1,(now-cursorAnim.animStart)/liveDur);
     cursorAnim.x=cursorAnim.startX+(cursorAnim.targetX-cursorAnim.startX)*t;
     cursorAnim.y=cursorAnim.startY+(cursorAnim.targetY-cursorAnim.startY)*t;
@@ -1147,7 +1149,7 @@ var effFactor=Math.pow(S.multiplier,S.recoveryStep);
 var useStake=+(S.stake*effFactor).toFixed(2);
 if(useStake>STAKE_MAX){toast('Recovery would exceed $5,000 \u2014 reset to base','error');S.recoveryStep=0;stopAutoRun();return;}
 if(S.autoRunning&&S.session&&S.stopLoss>0){var roomLeft=S.stopLoss+S.session.profit;if(roomLeft<=0){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss hit \u2014 bot stopped','error');return;}}
-if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:S.duration,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){toast(e.message,'error');});}
+if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:S.duration,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){var msg=(e&&e.message)||'';if(msg.toLowerCase().indexOf('waiting')!==-1||msg.toLowerCase().indexOf('current trade')!==-1||msg.toLowerCase().indexOf('already')!==-1)return;toast(msg,'error');});}
 function kindLabel(k,p){if(k==='even')return'Even';if(k==='odd')return'Odd';if(k==='matches')return'Match '+p;if(k==='differs')return'Differ '+p;if(k==='over')return'Over '+p;if(k==='under')return'Under '+p;return k;}
 
 function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){S.cursorMoveNext=true;if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;S.recoveryStep=0;}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;S.recoveryStep=Math.min(S.recoveryStep+1,4);}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
@@ -1259,4 +1261,4 @@ window.addEventListener('load',function(){setTimeout(resizeChart,50);});
 })();
 </script>
 </body>
-                                                                                                                                                              </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </html>
