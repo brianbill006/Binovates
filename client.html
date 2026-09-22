@@ -1092,8 +1092,8 @@ function startChartLoop(){
     if(!app||app.style.display==='none'){chartLoopRunning=false;return;}
     var dt=now-last;last=now;
     cursorAnim.sweepT=(cursorAnim.sweepT+dt);
-    // Cursor glide lasts exactly 5 seconds
-    var liveDur=5000;
+    // Cursor glide lasts exactly 10 seconds
+    var liveDur=10000;
     var t=Math.min(1,(now-cursorAnim.animStart)/liveDur);
     cursorAnim.x=cursorAnim.startX+(cursorAnim.targetX-cursorAnim.startX)*t;
     cursorAnim.y=cursorAnim.startY+(cursorAnim.targetY-cursorAnim.startY)*t;
@@ -1143,7 +1143,6 @@ else if(S.activeTab==='overunder'){var ov=payoutFor('over',S.barrier,realSt),un=
 p.innerHTML=h+body;}
 
 function buy(kind){if(!S.user){toast('Please sign in','error');return;}S.hasTradedOnce=true;
-// Silent recovery: real stake = base × multiplier^recoveryStep
 var effFactor=Math.pow(S.multiplier,S.recoveryStep);
 var useStake=+(S.stake*effFactor).toFixed(2);
 if(useStake>STAKE_MAX){toast('Recovery would exceed $5,000 \u2014 reset to base','error');S.recoveryStep=0;stopAutoRun();return;}
