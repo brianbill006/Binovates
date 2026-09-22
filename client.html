@@ -879,7 +879,7 @@ body.light .vol-row.active .vi-name{color:#C99400}
 (function(){
 'use strict';
 var STAKE_MIN=0.10,STAKE_MAX=5000;
-var S={token:null,user:null,account:'real',indices:[],activeIndex:'vol10',ticks:{},activeTab:'evenodd',prediction:5,barrier:4,stake:10,duration:5,positions:[],positionsSnapshot:{},sound:true,audioCtx:null,lastTickTime:0,resetEmail:null,botTop:null,zoom:1,mode:'manual',targetProfit:200,stopLoss:200,multiplier:1,baseMultiplier:1,session:null,hasTradedOnce:false,autoRunning:false,autoKind:null,posTab:'open',theme:'dark',tickInterval:1000};
+var S={token:null,user:null,account:'real',indices:[],activeIndex:'vol10',ticks:{},activeTab:'evenodd',prediction:5,barrier:4,stake:10,duration:5,positions:[],positionsSnapshot:{},sound:true,audioCtx:null,lastTickTime:0,resetEmail:null,botTop:null,zoom:1,mode:'manual',targetProfit:200,stopLoss:200,multiplier:2,recoveryStep:0,session:null,hasTradedOnce:false,autoRunning:false,autoKind:null,posTab:'open',theme:'dark',tickInterval:1000};
 
 function api(p,o){o=o||{};var h={'Content-Type':'application/json'};if(S.token)h['Authorization']='Bearer '+S.token;if(o.headers)for(var k in o.headers)h[k]=o.headers[k];return fetch(p,Object.assign({},o,{headers:h})).then(function(r){return r.json().catch(function(){return{};}).then(function(d){if(!r.ok)throw new Error(d.error||'Request failed');return d;});});}
 function saveToken(t,remember){try{if(remember){localStorage.setItem('tok_token',t);sessionStorage.removeItem('tok_token');}else{sessionStorage.setItem('tok_token',t);localStorage.removeItem('tok_token');}}catch(e){}}
@@ -1001,7 +1001,7 @@ function showForgot(){document.getElementById('loginBox').style.display='none';d
 function hideForgot(){document.getElementById('loginBox').style.display='block';document.getElementById('forgotBox').style.display='none';}
 document.getElementById('forgotForm').onsubmit=function(e){e.preventDefault();var err=document.getElementById('forgotError'),ok=document.getElementById('forgotOk');err.textContent='';ok.textContent='';var step1=document.getElementById('forgotStep1').style.display!=='none';if(step1){var email=document.getElementById('forgotEmail').value.trim().toLowerCase();var btn=document.getElementById('forgotSendBtn');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email';return;}btn.disabled=true;btn.textContent='Sending...';api('/api/auth/forgot',{method:'POST',body:JSON.stringify({email:email})}).then(function(r){S.resetEmail=email;document.getElementById('forgotStep1').style.display='none';document.getElementById('forgotStep2').style.display='block';document.getElementById('forgotTitle').textContent='Enter Code';document.getElementById('forgotSub').textContent='Check your email for the 6-digit code';ok.textContent=r.message||'Code sent!';}).catch(function(e2){err.textContent=e2.message;btn.disabled=false;btn.textContent='Send Reset Code';});}else{var code=document.getElementById('resetCode').value.trim();var newPw=document.getElementById('resetPassword').value;var btn2=document.getElementById('forgotResetBtn');if(code.length!==6){err.textContent='Enter the 6-digit code';return;}if(newPw.length<6){err.textContent='Password must be 6+ characters';return;}btn2.disabled=true;btn2.textContent='Resetting...';api('/api/auth/reset',{method:'POST',body:JSON.stringify({email:S.resetEmail,code:code,password:newPw})}).then(function(d){S.token=d.token;saveToken(d.token,true);S.user=d.user;hideForgot();enterApp();toast('Password reset! Welcome back','success');}).catch(function(e3){err.textContent=e3.message;btn2.disabled=false;btn2.textContent='Reset & Sign In';});}};
 function tryRestore(){var saved=loadToken();if(!saved)return Promise.resolve();S.token=saved;return api('/api/me').then(function(u){S.user=u;enterApp();}).catch(function(){S.token=null;clearToken();});}
-function logout(){S.token=null;S.user=null;S.session=null;S.autoRunning=false;clearToken();closeDrawer();document.body.classList.remove('authed');document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='none';document.getElementById('landingPage').classList.remove('hidden');hideForgot();if(window._es){window._es.close();window._es=null;}authMode='login';setupAuth();toast('Signed out');}
+function logout(){S.token=null;S.user=null;S.session=null;S.autoRunning=false;S.recoveryStep=0;clearToken();closeDrawer();document.body.classList.remove('authed');document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='none';document.getElementById('landingPage').classList.remove('hidden');hideForgot();if(window._es){window._es.close();window._es=null;}authMode='login';setupAuth();toast('Signed out');}
 
 var INDICES_CLIENT={vol10:{base:9534.43,vol:2.5,decimals:2},vol25:{base:6355.20,vol:5,decimals:2},vol50:{base:3428.90,vol:10,decimals:2},vol75:{base:1854.30,vol:15,decimals:2},vol100:{base:970.50,vol:20,decimals:2},vol150:{base:642.80,vol:30,decimals:2},vol250:{base:389.40,vol:50,decimals:2}};
 var INDICES_MAP={vol10:'Vol 10',vol25:'Vol 25',vol50:'Vol 50',vol75:'Vol 75',vol100:'Vol 100',vol150:'Vol 150',vol250:'Vol 250'};
@@ -1039,11 +1039,9 @@ var chart=document.getElementById('chart'),ctx=chart.getContext('2d'),dpr=window
 function resizeChart(){var r=chart.parentElement.getBoundingClientRect();if(!r.width||!r.height)return;chart.width=r.width*dpr;chart.height=r.height*dpr;chart.style.width=r.width+'px';chart.style.height=r.height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);drawChart();}
 window.addEventListener('resize',resizeChart);
 
-// ---- Smooth cursor state: 3.5s linear glide per tick ----
-var cursorAnim={x:0,y:0,startX:0,startY:0,targetX:0,targetY:0,init:false,sweepT:0,animStart:0,animDur:3500};
+var cursorAnim={x:0,y:0,startX:0,startY:0,targetX:0,targetY:0,init:false,sweepT:0,animStart:0,animDur:1000};
 
 function drawChart(){var w=chart.width/dpr,h=chart.height/dpr;if(!w||!h)return;ctx.clearRect(0,0,w,h);var data=(S.ticks[S.activeIndex]||[]).slice(-Math.floor(60*S.zoom));if(data.length<2)return;var isLight=document.body.classList.contains('light');var padR=66,padB=24,padT=10,padL=8,cw=w-padR-padL,ch=h-padB-padT;var hi=-Infinity,lo=Infinity;data.forEach(function(t){if(t.price>hi)hi=t.price;if(t.price<lo)lo=t.price;});var rng=(hi-lo)||1;hi+=rng*0.08;lo-=rng*0.08;var total=hi-lo;var xOf=function(i){return padL+(cw/(data.length-1))*i;};var yOf=function(p){return padT+(1-(p-lo)/total)*ch;};
-// Detect new tick → start new glide
 var ld=data[data.length-1];
 var newTX=xOf(data.length-1);
 var newTY=yOf(ld.price);
@@ -1060,15 +1058,11 @@ if(!cursorAnim.init){
   cursorAnim.targetY=newTY;
   cursorAnim.animStart=performance.now();
 }
-// Grid
 ctx.strokeStyle=isLight?'rgba(0,0,0,.05)':'rgba(255,255,255,.035)';ctx.lineWidth=1;for(var j=0;j<=4;j++){var gy=padT+(ch/4)*j;ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+cw,gy);ctx.stroke();}for(var gx=0;gx<=6;gx++){var xx=padL+(cw/6)*gx;ctx.beginPath();ctx.moveTo(xx,padT);ctx.lineTo(xx,padT+ch);ctx.stroke();}
-// Y-axis
 ctx.font='10px ui-monospace,monospace';ctx.textAlign='left';for(var k=0;k<=4;k++){var yy=padT+(ch/4)*k,v=hi-(total/4)*k;ctx.fillStyle=isLight?'rgba(75,85,99,.7)':'rgba(132,142,156,.55)';ctx.fillText(v.toFixed(2),padL+cw+8,yy+3);}
-// Price line
 ctx.beginPath();data.forEach(function(t,i){var x=xOf(i),y=yOf(t.price);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.strokeStyle=isLight?'#1E2329':'#EAECEF';ctx.lineWidth=1.7;ctx.lineJoin='round';ctx.stroke();
-// --- CURSOR: colour changes based on win/loss ---
+// Cursor: colour by trade outcome
 var cx=cursorAnim.x,cy=cursorAnim.y;
-// Determine accent colour from open position
 var openPos=null;for(var pi=0;pi<S.positions.length;pi++){if(S.positions[pi].status==='open'){openPos=S.positions[pi];break;}}
 var tickDigitNow=ld.digit;
 var isLosing=false;var isWinning=false;
@@ -1078,22 +1072,16 @@ if(openPos){
   isWinning=(res==='win');
 }
 var accent=isLosing?'#F6465D':(isWinning?'#0ECB81':'#F0B90B');
-function hexA(h,a){var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return 'rgba('+r+','+g+','+b+','+a+')';}
-// Vertical dashed line with accent
+function hexA(hh,a){var r=parseInt(hh.slice(1,3),16),g=parseInt(hh.slice(3,5),16),b=parseInt(hh.slice(5,7),16);return 'rgba('+r+','+g+','+b+','+a+')';}
 ctx.save();ctx.beginPath();ctx.setLineDash([4,4]);ctx.strokeStyle=hexA(accent,.7);ctx.lineWidth=1.4;ctx.moveTo(cx,padT);ctx.lineTo(cx,padT+ch);ctx.stroke();ctx.restore();
-// Pulsing glow
 var pulse=(cursorAnim.sweepT%1000)/1000;var ringR=6+pulse*10;var ringAlpha=0.65*(1-pulse);
 ctx.beginPath();ctx.arc(cx,cy,ringR,0,Math.PI*2);ctx.strokeStyle=hexA(accent,ringAlpha);ctx.lineWidth=2;ctx.stroke();
-// Solid dot
 ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle=isLosing?'#F6465D':(isWinning?'#0ECB81':'#EAECEF');ctx.fill();
 ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.strokeStyle=isLosing?'rgba(246,70,93,.7)':(isWinning?'rgba(14,203,129,.7)':'rgba(234,236,239,.5)');ctx.lineWidth=1.2;ctx.stroke();
-// Price tag
 var lb=ld.price.toFixed(2);ctx.font='bold 11px ui-monospace,monospace';var tw=ctx.measureText(lb).width+16;ctx.fillStyle=accent;if(ctx.roundRect){ctx.beginPath();ctx.roundRect(padL+cw+2,cy-10,tw,20,4);ctx.fill();}else{ctx.fillRect(padL+cw+2,cy-10,tw,20);}ctx.fillStyle='#181A20';ctx.textAlign='left';ctx.fillText(lb,padL+cw+10,cy+3.5);
-// Time labels
 ctx.font='10px ui-monospace,monospace';ctx.fillStyle=isLight?'rgba(75,85,99,.6)':'rgba(132,142,156,.5)';for(var n=0;n<=3;n++){var idx=Math.floor((data.length-1)*(n/3));var t=new Date(data[idx].time);var str=t.toTimeString().slice(0,8);ctx.textAlign=n===0?'left':n===3?'right':'center';ctx.fillText(str,xOf(idx),h-6);}
 }
 
-// ---- Linear cursor glide, 3.5 seconds per tick ----
 var chartLoopRunning=false;
 function startChartLoop(){
   if(chartLoopRunning)return;
@@ -1104,8 +1092,9 @@ function startChartLoop(){
     if(!app||app.style.display==='none'){chartLoopRunning=false;return;}
     var dt=now-last;last=now;
     cursorAnim.sweepT=(cursorAnim.sweepT+dt);
-    // Linear glide over 3.5 seconds
-    var liveDur=3500;
+    // Cursor glide duration = trade duration × tick interval
+    var liveDur=(S.duration||1)*(S.tickInterval||1000);
+    if(liveDur<500)liveDur=500;
     var t=Math.min(1,(now-cursorAnim.animStart)/liveDur);
     cursorAnim.x=cursorAnim.startX+(cursorAnim.targetX-cursorAnim.startX)*t;
     cursorAnim.y=cursorAnim.startY+(cursorAnim.targetY-cursorAnim.startY)*t;
@@ -1134,9 +1123,9 @@ function botApply(){var top=S.botTop;if(!top){toast('Bot is still scanning','err
 document.querySelectorAll('#cTabs .c-tab').forEach(function(b){b.onclick=function(){document.querySelectorAll('#cTabs .c-tab').forEach(function(x){x.classList.remove('active');});b.classList.add('active');S.activeTab=b.dataset.tab;renderTradePanel();if(document.getElementById('view-bot').classList.contains('active'))renderBot();};});
 
 function payoutFor(kind,pred,stake){var o;switch(kind){case'matches':o=9.5;break;case'differs':o=1.056;break;case'even':o=1.952;break;case'odd':o=1.952;break;case'over':var ovw=9-pred;o=ovw<=0?500:+((10/ovw)*0.95).toFixed(3);break;case'under':var unw=pred;o=unw<=0?500:+((10/unw)*0.95).toFixed(3);break;default:o=1.95;}return{odds:o,payout:stake*o};}
-function renderTradePanel(){var p=document.getElementById('tradePanel');if(!p)return;var st=S.stake;var realSt=+(S.stake*S.multiplier).toFixed(2);var h='';
+function renderTradePanel(){var p=document.getElementById('tradePanel');if(!p)return;var st=S.stake;var realSt=S.stake;var h='';
 h+='<div class="mode-toggle"><button class="'+(S.mode==='auto'?'active':'')+'" onclick="TQ.setMode(\'auto\')">AUTO</button><button class="'+(S.mode==='manual'?'active':'')+'" onclick="TQ.setMode(\'manual\')">MANUAL</button></div>';
-h+='<div class="stake-wrap"><div class="stake-label">STAKE'+(S.multiplier>1?' \u00D7'+S.multiplier:'')+'</div><div class="stake-row"><button class="stake-btn" onclick="TQ.adjustStake(-1)">\u2212</button><div class="stake-display"><span class="cur">$</span><span id="stakeVal">'+fmtStake(realSt)+'</span></div><button class="stake-btn" onclick="TQ.adjustStake(1)">+</button></div></div>';
+h+='<div class="stake-wrap"><div class="stake-label">STAKE</div><div class="stake-row"><button class="stake-btn" onclick="TQ.adjustStake(-1)">\u2212</button><div class="stake-display"><span class="cur">$</span><span id="stakeVal">'+fmtStake(S.stake)+'</span></div><button class="stake-btn" onclick="TQ.adjustStake(1)">+</button></div></div>';
 h+='<div class="quick-amts">'+[0.35,1,5,10,25,50,100,500].map(function(a){return '<button class="'+(Math.abs(a-st)<0.001?'active':'')+'" onclick="TQ.setStake('+a+')">$'+fmtStake(a)+'</button>';}).join('')+'</div>';
 if(S.mode==='auto'){
 h+='<div class="tpsl"><div class="tpsl-box" onclick="TQ.editTarget()"><div class="l green">TARGET PROFIT</div><div class="v"><span class="cur">$</span>'+S.targetProfit+'</div></div><div class="tpsl-box" onclick="TQ.editStop()"><div class="l red">STOP LOSS</div><div class="v"><span class="cur">$</span>'+S.stopLoss+'</div></div><div class="tpsl-box" onclick="TQ.editMultiplier()"><div class="l amber">MULTIPLIER</div><div class="v"><span class="cur">\u00D7</span>'+S.multiplier+'</div></div></div>';
@@ -1154,18 +1143,16 @@ else if(S.activeTab==='matches'){var mm=payoutFor('matches',S.prediction,realSt)
 else if(S.activeTab==='overunder'){var ov=payoutFor('over',S.barrier,realSt),un=payoutFor('under',S.barrier,realSt);var ovPct=((ov.odds-1)*100).toFixed(1)+'%';var unPct=((un.odds-1)*100).toFixed(1)+'%';body='<div class="pick-row"><div class="pick-label">Barrier</div><div class="digits-pick">'+[0,1,2,3,4,5,6,7,8,9].map(function(d){return '<button class="'+(d===S.barrier?'active':'')+'" onclick="TQ.setBarrier('+d+')">'+d+'</button>';}).join('')+'</div></div><div class="trade-btns">'+btn('over','Over','green',{pct:ovPct,pay:ov.payout})+btn('under','Under','red',{pct:unPct,pay:un.payout})+'</div>';}
 p.innerHTML=h+body;}
 
-function buy(kind){if(!S.user){toast('Please sign in','error');return;}S.hasTradedOnce=true;var useStake=+(S.stake*S.multiplier).toFixed(2);
+function buy(kind){if(!S.user){toast('Please sign in','error');return;}S.hasTradedOnce=true;
+// Silent recovery: real stake = base × multiplier^recoveryStep
+var effFactor=Math.pow(S.multiplier,S.recoveryStep);
+var useStake=+(S.stake*effFactor).toFixed(2);
+if(useStake>STAKE_MAX){toast('Recovery would exceed $5,000 \u2014 reset to base','error');S.recoveryStep=0;stopAutoRun();return;}
 if(S.autoRunning&&S.session&&S.stopLoss>0){var roomLeft=S.stopLoss+S.session.profit;if(roomLeft<=0){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss hit \u2014 bot stopped','error');return;}if(useStake>roomLeft){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Next bet $'+useStake.toFixed(2)+' exceeds Stop Loss \u2014 stopped','error');return;}}
-if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(useStake>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:S.duration,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){toast(e.message,'error');});}
+if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:S.duration,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){toast(e.message,'error');});}
 function kindLabel(k,p){if(k==='even')return'Even';if(k==='odd')return'Odd';if(k==='matches')return'Match '+p;if(k==='differs')return'Differ '+p;if(k==='over')return'Over '+p;if(k==='under')return'Under '+p;return k;}
 
-function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;
-// Recovery — reset multiplier on win
-if(S.mode==='auto'){S.multiplier=1;renderTradePanel();}
-}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;
-// Recovery — double multiplier on loss (cap 16x)
-if(S.mode==='auto'){S.multiplier=Math.min(S.multiplier*2,16);renderTradePanel();}
-}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
+function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;S.recoveryStep=0;}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;S.recoveryStep=Math.min(S.recoveryStep+1,4);}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
 function posTab(){return S.posTab||'open';}
 function switchPosTab(t){S.posTab=t;document.querySelectorAll('.pos-tab').forEach(function(b){b.classList.toggle('active',b.dataset.ptab===t);});renderPositionTab();}
 function renderPositionTab(){var body=document.getElementById('posTabBody');if(!body)return;var open=S.positions.filter(function(p){return p.status==='open';});var closed=S.positions.filter(function(p){return p.status!=='open';});var o1=document.getElementById('ptabOpenCnt');if(o1)o1.textContent='('+open.length+')';var o2=document.getElementById('ptabClosedCnt');if(o2)o2.textContent='('+closed.length+')';var tab=posTab();if(tab==='open'){body.innerHTML=renderOpenCards(open);}else if(tab==='closed'){body.innerHTML=renderClosedCards(closed);}else{loadTxTab(body);}updatePosBadge(open.length);}
@@ -1191,10 +1178,10 @@ function openWithdraw(){if(!S.user){toast('Please sign in first','error');return
 function openHistory(){if(!S.user){toast('Please sign in first','error');return;}loadHistory();openModal('historyModal');}
 
 var editCtx={field:null,step:1,min:1,max:100000,label:''};
-function openEditModal(field){editCtx.field=field;var title,label,step,min,max,val;if(field==='target'){title='Edit Target Profit';label='Amount (USD)';step=10;min=1;max=100000;val=S.targetProfit;}else if(field==='stop'){title='Edit Stop Loss';label='Amount (USD)';step=10;min=1;max=100000;val=S.stopLoss;}else{title='Edit Multiplier';label='Multiplier (1 = flat, 16 = max)';step=1;min=1;max=16;val=S.multiplier;}editCtx.step=step;editCtx.min=min;editCtx.max=max;editCtx.label=label;document.getElementById('editTitle').textContent=title;document.getElementById('editLabel').textContent=label;var inp=document.getElementById('editInput');inp.value=val;inp.step=step;inp.min=min;inp.max=max;document.getElementById('editModal').classList.add('show');setTimeout(function(){inp.focus();inp.select();},100);}
+function openEditModal(field){editCtx.field=field;var title,label,step,min,max,val;if(field==='target'){title='Edit Target Profit';label='Amount (USD)';step=10;min=1;max=100000;val=S.targetProfit;}else if(field==='stop'){title='Edit Stop Loss';label='Amount (USD)';step=10;min=1;max=100000;val=S.stopLoss;}else{title='Edit Multiplier';label='Multiplier (1 to 5)';step=1;min=1;max=5;val=S.multiplier;}editCtx.step=step;editCtx.min=min;editCtx.max=max;editCtx.label=label;document.getElementById('editTitle').textContent=title;document.getElementById('editLabel').textContent=label;var inp=document.getElementById('editInput');inp.value=val;inp.step=step;inp.min=min;inp.max=max;document.getElementById('editModal').classList.add('show');setTimeout(function(){inp.focus();inp.select();},100);}
 function closeEditModal(){document.getElementById('editModal').classList.remove('show');}
 function editStep(dir){var inp=document.getElementById('editInput');var cur=parseFloat(inp.value)||0;var next=+(cur+dir*editCtx.step).toFixed(2);if(next<editCtx.min)next=editCtx.min;if(next>editCtx.max)next=editCtx.max;inp.value=next;}
-function saveEditModal(){var val=parseFloat(document.getElementById('editInput').value);if(!(val>=editCtx.min)){toast('Minimum is '+editCtx.min,'error');return;}if(val>editCtx.max){toast('Maximum is '+editCtx.max,'error');return;}if(editCtx.field==='target'){S.targetProfit=val;toast('Target set: $'+val);}else if(editCtx.field==='stop'){S.stopLoss=val;toast('Stop loss set: $'+val);}else{S.multiplier=val;toast('Multiplier set: \u00D7'+val);}closeEditModal();renderTradePanel();}
+function saveEditModal(){var val=parseFloat(document.getElementById('editInput').value);if(!(val>=editCtx.min)){toast('Minimum is '+editCtx.min,'error');return;}if(val>editCtx.max){toast('Maximum is '+editCtx.max,'error');return;}if(editCtx.field==='target'){S.targetProfit=val;toast('Target set: $'+val);}else if(editCtx.field==='stop'){S.stopLoss=val;toast('Stop loss set: $'+val);}else{S.multiplier=val;S.recoveryStep=0;toast('Multiplier set: \u00D7'+val);}closeEditModal();renderTradePanel();}
 function editTarget(){openEditModal('target');}
 function editStop(){openEditModal('stop');}
 function editMultiplier(){openEditModal('multiplier');}
@@ -1223,15 +1210,15 @@ function changeEmail(){var ne=document.getElementById('stNewEmail').value;var pw
 
 function pickBestVolatility(kind){var allIdx=['vol10','vol25','vol50','vol75','vol100','vol150','vol250'];var bestIdx=S.activeIndex;var bestConf=-999;for(var k=0;k<allIdx.length;k++){var idx=allIdx[k];var ticks=(S.ticks[idx]||[]).slice(-100);if(ticks.length<20)continue;var counts=[0,0,0,0,0,0,0,0,0,0];ticks.forEach(function(t){counts[t.digit]++;});var total=ticks.length;var conf=0;if(kind==='even'||kind==='odd'){var evenC=0;for(var i=0;i<10;i+=2)evenC+=counts[i];var oddC=total-evenC;var want=(kind==='even')?evenC:oddC;conf=Math.abs((want/total)*100-50);}else if(kind==='over'){var uC=0;for(var i=0;i<S.barrier;i++)uC+=counts[i];var oC=total-uC;conf=(oC/total)*100-50;}else if(kind==='under'){var uC2=0;for(var i=0;i<S.barrier;i++)uC2+=counts[i];conf=50-(uC2/total)*100;}else if(kind==='matches'||kind==='differs'){var maxD=0;for(var i=1;i<10;i++)if(counts[i]>counts[maxD])maxD=i;var maxPct=(counts[maxD]/total)*100;if(kind==='matches')conf=maxPct-10;else conf=50-maxPct/2;}if(conf>bestConf){bestConf=conf;bestIdx=idx;}}return bestIdx;}
 function switchToIndex(idx){S.activeIndex=idx;S.lastTickTime=0;cursorAnim.init=false;updateChartHeader();drawChart();renderDigitRing();}
-function startOrBuy(kind){if(S.mode==='auto'){if(S.autoRunning)return;playTradeSound(kind);S.autoRunning=true;S.autoKind=kind;S.multiplier=1;S.session={trades:0,wins:0,losses:0,profit:0,running:true,baseStake:S.stake,startTime:Date.now(),lastWasLoss:false};S.hasTradedOnce=true;var best=pickBestVolatility(kind);switchToIndex(best);renderTradePanel();toast('AUTO '+kind.toUpperCase()+' started \u2014 recovery ON','success');setTimeout(function(){if(S.autoRunning)buy(S.autoKind);},200);}else{buy(kind);}}
-function stopAutoRun(){S.autoRunning=false;if(S.session)S.session.running=false;S.multiplier=1;renderTradePanel();}
+function startOrBuy(kind){if(S.mode==='auto'){if(S.autoRunning)return;playTradeSound(kind);S.autoRunning=true;S.autoKind=kind;S.recoveryStep=0;S.session={trades:0,wins:0,losses:0,profit:0,running:true,baseStake:S.stake,startTime:Date.now(),lastWasLoss:false};S.hasTradedOnce=true;var best=pickBestVolatility(kind);switchToIndex(best);renderTradePanel();toast('AUTO '+kind.toUpperCase()+' started \u2014 recovery \u00D7'+S.multiplier,'success');setTimeout(function(){if(S.autoRunning)buy(S.autoKind);},200);}else{buy(kind);}}
+function stopAutoRun(){S.autoRunning=false;if(S.session)S.session.running=false;S.recoveryStep=0;renderTradePanel();}
 function setMode(m){if(m==='manual'){if(S.autoRunning)stopAutoRun();S.session=null;S.positionsSnapshot={};}S.mode=m;renderTradePanel();}
 function checkTargetStop(){if(!S.autoRunning||!S.session)return false;if(S.session.profit>=S.targetProfit){if(S.session.wins<=S.session.losses)S.session.wins=S.session.losses+1;playTPSound();stopAutoRun();showResult('win',S.session.profit);toast('Target Profit hit \u2014 bot stopped','success');return true;}if(-S.session.profit>=S.stopLoss){if(S.session.losses<=S.session.wins)S.session.losses=S.session.wins+1;playSLSound();stopAutoRun();showResult('loss',S.session.profit);toast('Stop Loss hit \u2014 bot stopped','error');return true;}return false;}
 function showResult(kind,amount){var modal=document.getElementById('resultModal');var card=document.getElementById('rmCard');card.className='result-modal-card '+kind;document.getElementById('rmIcon').textContent=kind==='win'?'\u2713':'\u2715';document.getElementById('rmTitle').textContent=kind==='win'?'Target Profit Hit! \uD83C\uDF89':'Stop Loss Hit';var amt=Math.abs(amount).toFixed(2);document.getElementById('rmAmount').textContent=(kind==='win'?'+':'-')+'$'+amt+' USD';var s=S.session||{trades:0,wins:0,losses:0};if(kind==='win'&&s.wins<=s.losses)s.wins=s.losses+1;if(kind==='loss'&&s.losses<=s.wins)s.losses=s.wins+1;var totalT=s.wins+s.losses;document.getElementById('rmTrades').textContent=totalT;document.getElementById('rmWins').textContent=s.wins+'W';document.getElementById('rmLosses').textContent=s.losses+'L';var rate=totalT>0?(s.wins/totalT*100).toFixed(1):'0.0';document.getElementById('rmRate').textContent=rate+'%';modal.classList.add('show');}
 function hideResult(){document.getElementById('resultModal').classList.remove('show');}
 
-function adjustStake(dir){var cur=S.stake;var next;if(cur<=1||(cur<=1.0001&&dir<0)){next=+(cur+dir*0.10).toFixed(2);if(next<0.10)next=0.10;if(next>1)next=1.00;}else if(cur<2&&dir<0){next=+(cur-0.10).toFixed(2);if(next<1)next=1.00;}else{next=cur+dir*1;if(next<1)next=1.00;if(next>STAKE_MAX)next=STAKE_MAX;}if(next<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(next>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=next;renderTradePanel();}
-function setStake(v){v=Number(v);if(v<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(v>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=v;renderTradePanel();}
+function adjustStake(dir){var cur=S.stake;var next;if(cur<=1||(cur<=1.0001&&dir<0)){next=+(cur+dir*0.10).toFixed(2);if(next<0.10)next=0.10;if(next>1)next=1.00;}else if(cur<2&&dir<0){next=+(cur-0.10).toFixed(2);if(next<1)next=1.00;}else{next=cur+dir*1;if(next<1)next=1.00;if(next>STAKE_MAX)next=STAKE_MAX;}if(next<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(next>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=next;S.recoveryStep=0;renderTradePanel();}
+function setStake(v){v=Number(v);if(v<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(v>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=v;S.recoveryStep=0;renderTradePanel();}
 function setDuration(v){S.duration=v;renderTradePanel();}
 function setPrediction(d){S.prediction=d;renderTradePanel();}
 function setBarrier(d){S.barrier=d;renderTradePanel();}
@@ -1274,4 +1261,4 @@ window.addEventListener('load',function(){setTimeout(resizeChart,50);});
 })();
 </script>
 </body>
-                                                                                         </html>
+  </html>
