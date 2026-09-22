@@ -202,10 +202,21 @@ body:not(.authed) #app,body:not(.authed) .bnav,body:not(.authed) .view{display:n
 .chart-pct{position:absolute;top:8px;right:8px;padding:5px 10px;border-radius:8px;background:rgba(30,35,41,.85);border:1px solid rgba(255,255,255,.1);color:#EAECEF;font-size:12px;font-weight:800;backdrop-filter:blur(6px)}
 .digit-ring{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:12px}
 .digit-cell{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
-.digit-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;transition:all .6s ease}
-.digit-circle.current{border-color:var(--blue);background:linear-gradient(135deg,#FCD535,#F0B90B);color:#181A20;box-shadow:0 0 14px rgba(240,185,11,.7);transform:scale(1.08)}
-.digit-circle.current.cur-win{border-color:#0ECB81;background:linear-gradient(135deg,#0ECB81,#059669);color:#fff;box-shadow:0 0 14px rgba(14,203,129,.85);transform:scale(1.08)}
-.digit-circle.current.cur-lose{border-color:#F6465D;background:linear-gradient(135deg,#F6465D,#dc2626);color:#fff;box-shadow:0 0 14px rgba(246,70,93,.85);transform:scale(1.08)}
+.digit-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;transition:border-color .3s ease,color .3s ease,background .3s ease}
+.digit-circle.current{border-color:var(--blue);background:linear-gradient(135deg,#FCD535,#F0B90B);color:#181A20;box-shadow:0 0 14px rgba(240,185,11,.7)}
+.digit-circle.current.cur-win{border-color:#0ECB81;background:linear-gradient(135deg,#0ECB81,#059669);color:#fff;box-shadow:0 0 14px rgba(14,203,129,.85)}
+.digit-circle.current.cur-lose{border-color:#F6465D;background:linear-gradient(135deg,#F6465D,#dc2626);color:#fff;box-shadow:0 0 14px rgba(246,70,93,.85)}
+@keyframes digitComeGo{
+  0%  {transform:scale(1.32);opacity:1;box-shadow:0 0 26px currentColor}
+  30% {transform:scale(1.15);opacity:1;box-shadow:0 0 18px currentColor}
+  65% {transform:scale(1.02);opacity:.55;box-shadow:0 0 8px currentColor}
+  100%{transform:scale(.90);opacity:.10;box-shadow:none}
+}
+.digit-circle.current,
+.digit-circle.current.cur-win,
+.digit-circle.current.cur-lose{
+  animation:digitComeGo .95s ease-out forwards;
+}
 .digit-cell.hot .digit-circle{border-color:var(--green);color:var(--green)}
 .digit-cell.cold .digit-circle{border-color:var(--red);color:var(--red)}
 .digit-cell.hot .digit-circle.current,.digit-cell.cold .digit-circle.current{color:#181A20}
@@ -248,10 +259,6 @@ body:not(.authed) #app,body:not(.authed) .bnav,body:not(.authed) .view{display:n
 .session-bar .sb-mid{font-size:14px;font-variant-numeric:tabular-nums}
 .session-bar .pl-win{color:#0ECB81}
 .session-bar .pl-loss{color:#F6465D}
-.dur-row{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none}
-.dur-row::-webkit-scrollbar{display:none}
-.dur-row button{flex-shrink:0;padding:8px 14px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-size:11px;font-weight:800;color:var(--tx2)}
-.dur-row button.active{background:linear-gradient(135deg,rgba(240,185,11,.2),rgba(240,185,11,.1));border-color:var(--blue);color:var(--blue)}
 .trade-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px}
 .trade-btn{padding:14px 12px;border-radius:13px;font-weight:800;text-align:left;display:flex;flex-direction:column;gap:2px}
 .trade-btn .ttl{font-size:17px}
@@ -523,7 +530,7 @@ body.light .tool-sq{background:rgba(255,255,255,.95);border-color:rgba(0,0,0,.1)
 body.light .digit-circle{background:#F5F5F5;border-color:rgba(0,0,0,.15)}
 body.light .digit-pct{color:#5E6673}
 body.light .c-tab{background:#fff;border-color:rgba(0,0,0,.08);color:#707A8A}
-body.light .quick-amts button,body.light .dur-row button{background:#fff;border-color:rgba(0,0,0,.08);color:#707A8A}
+body.light .quick-amts button{background:#fff;border-color:rgba(0,0,0,.08);color:#707A8A}
 body.light .digits-pick button{background:#fff;border-color:rgba(0,0,0,.12);color:#1E2329}
 body.light .session-bar{background:linear-gradient(135deg,rgba(14,203,129,.08),rgba(240,185,11,.06));border-color:rgba(14,203,129,.25)}
 body.light .bnav{background:rgba(255,255,255,.98);border-color:rgba(0,0,0,.08)}
@@ -1024,6 +1031,7 @@ function onTick(){var t=currentTick();document.getElementById('chPrice').textCon
 if(t.time&&t.time!==S.lastTickTime){
 if(S.lastTickTime){var iv=t.time-S.lastTickTime;if(iv>100&&iv<10000)S.tickInterval=iv;}
 S.lastTickTime=t.time;
+S.cursorMoveNext=true;
 playTick();
 if(S.autoRunning&&S.session){
 var opensNow=S.positions.filter(function(p){return p.status==='open';}).length;
@@ -1115,11 +1123,9 @@ function startChartLoop(){
     if(!app||app.style.display==='none'){chartLoopRunning=false;return;}
     var dt=now-last;last=now;
     cursorAnim.sweepT=(cursorAnim.sweepT+dt);
-    var tradeMs=(S.duration||1)*(S.tickInterval||1000);
-    var gapMs=2000;
-    var liveDur=tradeMs+gapMs;
-    if(liveDur<1500)liveDur=1500;
-    if(liveDur>8000)liveDur=8000;
+    var liveDur=(S.tickInterval||1000)*0.4;
+    if(liveDur<250)liveDur=250;
+    if(liveDur>600)liveDur=600;
     var t=Math.min(1,(now-cursorAnim.animStart)/liveDur);
     cursorAnim.x=cursorAnim.startX+(cursorAnim.targetX-cursorAnim.startX)*t;
     cursorAnim.y=cursorAnim.startY+(cursorAnim.targetY-cursorAnim.startY)*t;
@@ -1193,7 +1199,6 @@ if(S.session){if(ss2.profit>=S.targetProfit&&ss2.wins<=ss2.losses)ss2.wins=ss2.l
 var totalT2=ss2.wins+ss2.losses;
 var prefix=(S.autoRunning?'LIVE ':'LAST ');
 h+='<div class="session-bar"><span class="sb-left">'+prefix+totalT2+'T \u00B7 '+ss2.wins+'W \u00B7 '+ss2.losses+'L</span><b class="sb-mid '+(ss2.profit>=0?'pl-win':'pl-loss')+'">'+(ss2.profit>=0?'+':'')+'$'+ss2.profit.toFixed(2)+'</b></div>';
-h+='<div class="dur-row">'+[1,3,5,10].map(function(d){return '<button class="'+(d===S.duration?'active':'')+'" onclick="TQ.setDuration('+d+')">'+d+' tick'+(d>1?'s':'')+'</button>';}).join('')+'</div>';
 var body='';
 function btn(kind,label,colorClass,payout){var isRunning=S.autoRunning&&S.autoKind===kind;var isLocked=S.autoRunning&&S.autoKind!==kind;var payHtml='$'+payout.pay.toFixed(2)+'<br><small style="font-size:10px;opacity:.75;font-weight:600">Payout</small>';if(isRunning){return '<button class="trade-btn stop-btn" onclick="TQ.stopAutoRun()"><div class="ttl">STOP</div></button>';}if(isLocked){return '<button class="trade-btn '+colorClass+' locked-silent"><div class="ttl">'+label+'</div><div class="sub"><span>'+payout.pct+'</span><span class="payout">'+payHtml+'</span></div></button>';}return '<button class="trade-btn '+colorClass+'" onclick="TQ.startOrBuy(\''+kind+'\')"><div class="ttl">'+label+'</div><div class="sub"><span>'+payout.pct+'</span><span class="payout">'+payHtml+'</span></div></button>';}
 if(S.activeTab==='evenodd'){var pe=payoutFor('even',0,realSt),po=payoutFor('odd',0,realSt);var ePct=((pe.odds-1)*100).toFixed(1)+'%';body='<div class="trade-btns">'+btn('even','Even','green',{pct:ePct,pay:pe.payout})+btn('odd','Odd','red',{pct:ePct,pay:po.payout})+'</div>';}
@@ -1204,9 +1209,13 @@ p.innerHTML=h+body;}
 function buy(kind){if(!S.user){toast('Please sign in','error');return;}S.hasTradedOnce=true;
 var effFactor=Math.pow(S.multiplier,S.recoveryStep);
 var useStake=+(S.stake*effFactor).toFixed(2);
-if(useStake>STAKE_MAX){toast('Recovery would exceed $5,000 \u2014 reset to base','error');S.recoveryStep=0;stopAutoRun();return;}
-if(S.autoRunning&&S.session&&S.stopLoss>0){var roomLeft=S.stopLoss+S.session.profit;if(roomLeft<=0){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss hit \u2014 bot stopped','error');return;}}
-if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:S.duration,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){var msg=(e&&e.message)||'';if(msg.toLowerCase().indexOf('waiting')!==-1||msg.toLowerCase().indexOf('current trade')!==-1||msg.toLowerCase().indexOf('already')!==-1)return;toast(msg,'error');});}
+if(useStake>STAKE_MAX){toast('Stake would exceed $5,000 \u2014 reset to base','error');S.recoveryStep=0;stopAutoRun();return;}
+if(S.autoRunning&&S.session&&S.stopLoss>0){
+  var roomLeft=S.stopLoss+S.session.profit;
+  if(roomLeft<=0){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss hit','error');return;}
+  if(useStake>=roomLeft){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss would be exceeded \u2014 bot stopped','error');return;}
+}
+if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:1,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){var msg=(e&&e.message)||'';if(msg.toLowerCase().indexOf('waiting')!==-1||msg.toLowerCase().indexOf('current trade')!==-1||msg.toLowerCase().indexOf('already')!==-1)return;toast(msg,'error');});}
 function kindLabel(k,p){if(k==='even')return'Even';if(k==='odd')return'Odd';if(k==='matches')return'Match '+p;if(k==='differs')return'Differ '+p;if(k==='over')return'Over '+p;if(k==='under')return'Under '+p;return k;}
 
 function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){S.cursorMoveNext=true;S.lastMoneyEvent={kind:(p.status==='won'?'win':'loss'),amount:p.profit||p.stake,ts:performance.now()};if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;S.recoveryStep=0;}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;S.recoveryStep=Math.min(S.recoveryStep+1,4);}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
@@ -1216,7 +1225,7 @@ function renderPositionTab(){var body=document.getElementById('posTabBody');if(!
 function updatePosBadge(n){var nav=document.querySelector('.bnav button[data-view="positions"]');if(!nav)return;var old=nav.querySelector('.badge');if(old)old.remove();if(n>0){var b=document.createElement('span');b.className='badge';b.textContent=n;nav.appendChild(b);}}
 function renderOpenCards(list){if(!list.length)return '<div class="empty"><div class="ic">&#128203;</div><div>No open trades</div></div>';var h='';list.forEach(function(p){h+=cardHtml(p,false);});return h;}
 function renderClosedCards(list){if(!list.length)return '<div class="empty"><div class="ic">&#128203;</div><div>No closed trades</div></div>';var h='';list.slice(0,50).forEach(function(p){h+=cardHtml(p,true);});return h;}
-function cardHtml(p,isClosed){var sideCls=(p.kind==='even'||p.kind==='over'||p.kind==='matches')?'even':'odd';var sideLbl=kindLabel(p.kind,p.prediction);if(p.kind==='even')sideLbl='Even';else if(p.kind==='odd')sideLbl='Odd';var volName=(INDICES_MAP[p.index]||p.index)+' (1s)';var stake=Number(p.stake).toFixed(2);var mult=p.multiplier||1;var potential=(p.stake*p.odds*mult).toFixed(3);var pl;if(isClosed){pl=p.profit;}else{pl=-p.stake;}var plCls=pl<0?'loss':(pl>0?'win':'');var plStr=(pl>=0?'':'-')+Math.abs(pl).toFixed(2);var entry=p.entryDigit!=null?p.entryDigit:'0';var statusLbl='';if(isClosed){statusLbl='<div class="tc-status '+(p.status==='won'?'won':'')+'">'+(p.status==='won'?'Won':'Closed')+'</div>';}var h='<div class="tc-card">';h+='<div class="tc-top"><div class="tc-icon"><svg viewBox="0 0 24 24" fill="none"><polyline points="3,17 9,11 13,15 21,7" stroke="#0ECB81" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="15,7 21,7 21,13" stroke="#0ECB81" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tc-info"><div class="tc-name">'+volName+'</div><div class="tc-sub">Index</div></div><div class="tc-side '+sideCls+'">'+sideLbl+'</div></div>';h+='<div class="tc-meta">Tick '+entry+'</div>';h+='<span class="tc-badge">USD \u00D7'+mult+'</span>';h+=statusLbl;h+='<div class="tc-grid">';h+='<div><div class="lbl">Total profit/loss:</div><div class="val '+plCls+'">'+plStr+'</div></div>';h+='<div><div class="lbl">Contract value:</div><div class="val">0.00</div></div>';h+='<div><div class="lbl">Stake:</div><div class="val">'+stake+'</div></div>';h+='<div><div class="lbl">Potential payout:</div><div class="val">'+potential+'</div></div>';h+='</div></div>';return h;}
+function cardHtml(p,isClosed){var sideCls=(p.kind==='even'||p.kind==='over'||p.kind==='matches')?'even':'odd';var sideLbl=kindLabel(p.kind,p.prediction);if(p.kind==='even')sideLbl='Even';else if(p.kind==='odd')sideLbl='Odd';var volName=(INDICES_MAP[p.index]||p.index)+' (1s)';var stake=Number(p.stake).toFixed(2);var mult=p.multiplier||1;var potential=(p.stake*p.odds*mult).toFixed(3);var pl;if(isClosed){pl=p.profit;}else{pl=-p.stake;}var plCls=pl<0?'loss':(pl>0?'win':'');var plStr=(pl>=0?'':'-')+Math.abs(pl).toFixed(2);var entry=p.entryDigit!=null?p.entryDigit:'0';var statusLbl='';if(isClosed){statusLbl='<div class="tc-status '+(p.status==='won'?'won':'')+'">'+(p.status==='won'?'Won':'Closed')+'</div>';}var h='<div class="tc-card">';h+='<div class="tc-top"><div class="tc-icon"><svg viewBox="0 0 24 24" fill="none"><polyline points="3,17 9,11 13,15 21,7" stroke="#0ECB81" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="15,7 21,7 21,13" stroke="#0ECB81" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tc-info"><div class="tc-name">'+volName+'</div><div class="tc-sub">Index</div></div><div class="tc-side '+sideCls+'">'+sideLbl+'</div></div>';h+='<div class="tc-meta">Entry digit '+entry+'</div>';h+='<span class="tc-badge">USD \u00D7'+mult+'</span>';h+=statusLbl;h+='<div class="tc-grid">';h+='<div><div class="lbl">Total profit/loss:</div><div class="val '+plCls+'">'+plStr+'</div></div>';h+='<div><div class="lbl">Contract value:</div><div class="val">0.00</div></div>';h+='<div><div class="lbl">Stake:</div><div class="val">'+stake+'</div></div>';h+='<div><div class="lbl">Potential payout:</div><div class="val">'+potential+'</div></div>';h+='</div></div>';return h;}
 function loadTxTab(body){body.innerHTML='<div class="empty"><div class="ic">&#8987;</div><div>Loading...</div></div>';api('/api/transactions').then(function(list){var rows=list.filter(function(t){return t.account===S.account||t.type==='referral_bonus';}).slice(0,80).sort(function(a,b){return b.createdAt-a.createdAt;});if(!rows.length){body.innerHTML='<div class="empty"><div class="ic">&#128203;</div><div>No transactions yet</div></div>';return;}var h='';rows.forEach(function(t){var cls='dep',label=t.type,icon='\u2193';if(t.type==='trade_stake'){cls='stake';label='Stake';icon='\u2198';}else if(t.type==='trade_win'){cls='win';label='Closed';icon='\u2197';}else if(t.type==='trade_loss'){cls='loss';label='Closed';icon='\u2198';}else if(t.type==='deposit'){cls='dep';label='Deposit';icon='\u2193';}else if(t.type==='withdrawal'){cls='wd';label='Withdrawal';icon='\u2191';}else if(t.type==='referral_bonus'){cls='win';label='Referral';icon='\uD83C\uDF81';}var amtVal=Number(t.amount)||0;var stakeVal=Number(t.stake)||0;var amtStr;if(t.type==='trade_stake'){amtStr='-'+stakeVal.toFixed(2);}else if(t.type==='trade_win'){amtStr='+'+(stakeVal+amtVal).toFixed(2);}else if(t.type==='trade_loss'){amtStr='-'+stakeVal.toFixed(2);}else{amtStr=(amtVal>=0?'+':'-')+Math.abs(amtVal).toFixed(2);}var volTag='';if(t.type==='trade_stake'||t.type==='trade_win'||t.type==='trade_loss')volTag='<span class="tx-tag">V10 (1s)</span>';var time=new Date(t.createdAt);var timeStr=(new Date().toDateString()===time.toDateString()?'Today ':'')+time.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});var prefix='';if(t.type==='trade_stake'||t.type==='trade_win'||t.type==='trade_loss')prefix='EVEN \u00B7 ';var balNow=0;if(S.user)balNow=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);h+='<div class="tx-item"><div class="tx-icon '+cls+'">'+icon+'</div><div class="tx-info"><div class="tx-line1"><span class="tx-label '+cls+'">'+label+'</span>'+volTag+'</div><div class="tx-sub">'+prefix+timeStr+'</div></div><div class="tx-amt-col"><div class="tx-amt '+cls+'">'+amtStr+'</div><div class="tx-bal">Bal: '+balNow.toFixed(2)+'</div></div></div>';});body.innerHTML=h;}).catch(function(e){body.innerHTML='<div class="empty"><div class="ic">\u26A0</div><div>'+e.message+'</div></div>';});}
 
 function updateSessionFooter(){var f=document.getElementById('posSessionFooter');if(!f)return;var s=S.session;if(!S.autoRunning||!s){f.style.display='none';return;}f.style.display='flex';if(s.profit>=S.targetProfit&&s.wins<=s.losses)s.wins=s.losses+1;if(-s.profit>=S.stopLoss&&s.losses<=s.wins)s.losses=s.wins+1;var tr=(s.wins||0)+(s.losses||0);document.getElementById('sfTrades').textContent=tr+' trade'+(tr===1?'':'s')+' ('+s.wins+'W / '+s.losses+'L)';var pl=s.profit||0;var el=document.getElementById('sfPL');el.textContent=(pl>=0?'+':'')+pl.toFixed(2)+' USD';el.className=pl>=0?'':'loss';}
@@ -1276,7 +1285,7 @@ function hideResult(){document.getElementById('resultModal').classList.remove('s
 
 function adjustStake(dir){var cur=S.stake;var next;if(cur<=1||(cur<=1.0001&&dir<0)){next=+(cur+dir*0.10).toFixed(2);if(next<0.10)next=0.10;if(next>1)next=1.00;}else if(cur<2&&dir<0){next=+(cur-0.10).toFixed(2);if(next<1)next=1.00;}else{next=cur+dir*1;if(next<1)next=1.00;if(next>STAKE_MAX)next=STAKE_MAX;}if(next<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(next>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=next;S.recoveryStep=0;renderTradePanel();}
 function setStake(v){v=Number(v);if(v<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(v>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=v;S.recoveryStep=0;renderTradePanel();}
-function setDuration(v){S.duration=v;renderTradePanel();}
+function setDuration(v){S.duration=1;}
 function setPrediction(d){S.prediction=d;renderTradePanel();}
 function setBarrier(d){S.barrier=d;renderTradePanel();}
 
@@ -1318,4 +1327,4 @@ window.addEventListener('load',function(){setTimeout(resizeChart,50);});
 })();
 </script>
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </html>
+  </html>
