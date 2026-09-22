@@ -1021,7 +1021,6 @@ if(t.time&&t.time!==S.lastTickTime){
 S.lastTickTime=t.time;
 playTick();
 if(S.autoRunning&&S.session){
-S.session.ticksSeen=(S.session.ticksSeen||0)+1;
 var opensNow=S.positions.filter(function(p){return p.status==='open';}).length;
 if(opensNow===0){
 if(!checkTargetStop()){
@@ -1039,15 +1038,27 @@ var chart=document.getElementById('chart'),ctx=chart.getContext('2d'),dpr=window
 function resizeChart(){var r=chart.parentElement.getBoundingClientRect();if(!r.width||!r.height)return;chart.width=r.width*dpr;chart.height=r.height*dpr;chart.style.width=r.width+'px';chart.style.height=r.height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);drawChart();}
 window.addEventListener('resize',resizeChart);
 
-// ---- Smooth cursor state (Deriv-style) ----
-var cursorAnim={x:0,y:0,targetX:0,targetY:0,init:false,sweepT:0,lastNow:0};
+// ---- Smooth cursor state (Deriv-style): one glide per tick, 1000ms duration ----
+var cursorAnim={x:0,y:0,startX:0,startY:0,targetX:0,targetY:0,init:false,sweepT:0,animStart:0,animDur:1000};
 
 function drawChart(){var w=chart.width/dpr,h=chart.height/dpr;if(!w||!h)return;ctx.clearRect(0,0,w,h);var data=(S.ticks[S.activeIndex]||[]).slice(-Math.floor(60*S.zoom));if(data.length<2)return;var isLight=document.body.classList.contains('light');var padR=66,padB=24,padT=10,padL=8,cw=w-padR-padL,ch=h-padB-padT;var hi=-Infinity,lo=Infinity;data.forEach(function(t){if(t.price>hi)hi=t.price;if(t.price<lo)lo=t.price;});var rng=(hi-lo)||1;hi+=rng*0.08;lo-=rng*0.08;var total=hi-lo;var xOf=function(i){return padL+(cw/(data.length-1))*i;};var yOf=function(p){return padT+(1-(p-lo)/total)*ch;};
-// Update target
+// Detect new tick → start new glide
 var ld=data[data.length-1];
-cursorAnim.targetX=xOf(data.length-1);
-cursorAnim.targetY=yOf(ld.price);
-if(!cursorAnim.init){cursorAnim.x=cursorAnim.targetX;cursorAnim.y=cursorAnim.targetY;cursorAnim.init=true;}
+var newTX=xOf(data.length-1);
+var newTY=yOf(ld.price);
+if(!cursorAnim.init){
+  cursorAnim.x=newTX;cursorAnim.y=newTY;
+  cursorAnim.startX=newTX;cursorAnim.startY=newTY;
+  cursorAnim.targetX=newTX;cursorAnim.targetY=newTY;
+  cursorAnim.animStart=performance.now();
+  cursorAnim.init=true;
+}else if(Math.abs(newTX-cursorAnim.targetX)>0.1||Math.abs(newTY-cursorAnim.targetY)>0.1){
+  cursorAnim.startX=cursorAnim.x;
+  cursorAnim.startY=cursorAnim.y;
+  cursorAnim.targetX=newTX;
+  cursorAnim.targetY=newTY;
+  cursorAnim.animStart=performance.now();
+}
 // Grid
 ctx.strokeStyle=isLight?'rgba(0,0,0,.05)':'rgba(255,255,255,.035)';ctx.lineWidth=1;for(var j=0;j<=4;j++){var gy=padT+(ch/4)*j;ctx.beginPath();ctx.moveTo(padL,gy);ctx.lineTo(padL+cw,gy);ctx.stroke();}for(var gx=0;gx<=6;gx++){var xx=padL+(cw/6)*gx;ctx.beginPath();ctx.moveTo(xx,padT);ctx.lineTo(xx,padT+ch);ctx.stroke();}
 // Y-axis
@@ -1070,7 +1081,7 @@ var lb=ld.price.toFixed(2);ctx.font='bold 11px ui-monospace,monospace';var tw=ct
 ctx.font='10px ui-monospace,monospace';ctx.fillStyle=isLight?'rgba(75,85,99,.6)':'rgba(132,142,156,.5)';for(var n=0;n<=3;n++){var idx=Math.floor((data.length-1)*(n/3));var t=new Date(data[idx].time);var str=t.toTimeString().slice(0,8);ctx.textAlign=n===0?'left':n===3?'right':'center';ctx.fillText(str,xOf(idx),h-6);}
 }
 
-// ---- Smooth animation loop ----
+// ---- Smooth animation loop: cursor glides over exactly ONE tick (1000ms), then rests ----
 var chartLoopRunning=false;
 function startChartLoop(){
   if(chartLoopRunning)return;
@@ -1081,16 +1092,11 @@ function startChartLoop(){
     if(!app||app.style.display==='none'){chartLoopRunning=false;return;}
     var dt=now-last;last=now;
     cursorAnim.sweepT=(cursorAnim.sweepT+dt);
-    // Ease cursor toward target — 22% per frame at 60fps ≈ 300ms settle
-    var dx=cursorAnim.targetX-cursorAnim.x;
-    var dy=cursorAnim.targetY-cursorAnim.y;
-    if(Math.abs(dx)>0.05||Math.abs(dy)>0.05){
-      cursorAnim.x+=dx*0.22;
-      cursorAnim.y+=dy*0.22;
-    }else{
-      cursorAnim.x=cursorAnim.targetX;
-      cursorAnim.y=cursorAnim.targetY;
-    }
+    // One glide per tick: ease-out cubic over animDur ms (1000ms = 1 tick)
+    var t=Math.min(1,(now-cursorAnim.animStart)/cursorAnim.animDur);
+    var ease=1-Math.pow(1-t,3);
+    cursorAnim.x=cursorAnim.startX+(cursorAnim.targetX-cursorAnim.startX)*ease;
+    cursorAnim.y=cursorAnim.startY+(cursorAnim.targetY-cursorAnim.startY)*ease;
     drawChart();
     requestAnimationFrame(frame);
   }
@@ -1123,12 +1129,11 @@ h+='<div class="quick-amts">'+[0.35,1,5,10,25,50,100,500].map(function(a){return
 if(S.mode==='auto'){
 h+='<div class="tpsl"><div class="tpsl-box" onclick="TQ.editTarget()"><div class="l green">TARGET PROFIT</div><div class="v"><span class="cur">$</span>'+S.targetProfit+'</div></div><div class="tpsl-box" onclick="TQ.editStop()"><div class="l red">STOP LOSS</div><div class="v"><span class="cur">$</span>'+S.stopLoss+'</div></div><div class="tpsl-box" onclick="TQ.editMultiplier()"><div class="l amber">MULTIPLIER</div><div class="v"><span class="cur">\u00D7</span>'+S.multiplier+'</div></div></div>';
 }
-var ss2=(S.session||{trades:0,wins:0,losses:0,profit:0,ticksSeen:0});
+var ss2=(S.session||{trades:0,wins:0,losses:0,profit:0});
 if(S.session){if(ss2.profit>=S.targetProfit&&ss2.wins<=ss2.losses)ss2.wins=ss2.losses+1;if(-ss2.profit>=S.stopLoss&&ss2.losses<=ss2.wins)ss2.losses=ss2.wins+1;}
 var totalT2=ss2.wins+ss2.losses;
-var tickCnt=ss2.ticksSeen||0;
 var prefix=(S.autoRunning?'LIVE ':'LAST ');
-h+='<div class="session-bar"><span class="sb-left">'+prefix+totalT2+'T \u00B7 '+ss2.wins+'W \u00B7 '+ss2.losses+'L \u00B7 \u23F1 '+tickCnt+' tick'+(tickCnt===1?'':'s')+'</span><b class="sb-mid '+(ss2.profit>=0?'pl-win':'pl-loss')+'">'+(ss2.profit>=0?'+':'')+'$'+ss2.profit.toFixed(2)+'</b></div>';
+h+='<div class="session-bar"><span class="sb-left">'+prefix+totalT2+'T \u00B7 '+ss2.wins+'W \u00B7 '+ss2.losses+'L</span><b class="sb-mid '+(ss2.profit>=0?'pl-win':'pl-loss')+'">'+(ss2.profit>=0?'+':'')+'$'+ss2.profit.toFixed(2)+'</b></div>';
 h+='<div class="dur-row">'+[1,3,5,10].map(function(d){return '<button class="'+(d===S.duration?'active':'')+'" onclick="TQ.setDuration('+d+')">'+d+' tick'+(d>1?'s':'')+'</button>';}).join('')+'</div>';
 var body='';
 function btn(kind,label,colorClass,payout){var isRunning=S.autoRunning&&S.autoKind===kind;var isLocked=S.autoRunning&&S.autoKind!==kind;var payHtml='$'+payout.pay.toFixed(2)+'<br><small style="font-size:10px;opacity:.75;font-weight:600">Payout</small>';if(isRunning){return '<button class="trade-btn stop-btn" onclick="TQ.stopAutoRun()"><div class="ttl">STOP</div></button>';}if(isLocked){return '<button class="trade-btn '+colorClass+' locked-silent"><div class="ttl">'+label+'</div><div class="sub"><span>'+payout.pct+'</span><span class="payout">'+payHtml+'</span></div></button>';}return '<button class="trade-btn '+colorClass+'" onclick="TQ.startOrBuy(\''+kind+'\')"><div class="ttl">'+label+'</div><div class="sub"><span>'+payout.pct+'</span><span class="payout">'+payHtml+'</span></div></button>';}
@@ -1150,7 +1155,14 @@ function updatePosBadge(n){var nav=document.querySelector('.bnav button[data-vie
 function renderOpenCards(list){if(!list.length)return '<div class="empty"><div class="ic">&#128203;</div><div>No open trades</div></div>';var h='';list.forEach(function(p){h+=cardHtml(p,false);});return h;}
 function renderClosedCards(list){if(!list.length)return '<div class="empty"><div class="ic">&#128203;</div><div>No closed trades</div></div>';var h='';list.slice(0,50).forEach(function(p){h+=cardHtml(p,true);});return h;}
 function cardHtml(p,isClosed){var sideCls=(p.kind==='even'||p.kind==='over'||p.kind==='matches')?'even':'odd';var sideLbl=kindLabel(p.kind,p.prediction);if(p.kind==='even')sideLbl='Even';else if(p.kind==='odd')sideLbl='Odd';var volName=(INDICES_MAP[p.index]||p.index)+' (1s)';var stake=Number(p.stake).toFixed(2);var mult=p.multiplier||1;var potential=(p.stake*p.odds*mult).toFixed(3);var pl;if(isClosed){pl=p.profit;}else{pl=-p.stake;}var plCls=pl<0?'loss':(pl>0?'win':'');var plStr=(pl>=0?'':'-')+Math.abs(pl).toFixed(2);var entry=p.entryDigit!=null?p.entryDigit:'0';var statusLbl='';if(isClosed){statusLbl='<div class="tc-status '+(p.status==='won'?'won':'')+'">'+(p.status==='won'?'Won':'Closed')+'</div>';}var h='<div class="tc-card">';h+='<div class="tc-top"><div class="tc-icon"><svg viewBox="0 0 24 24" fill="none"><polyline points="3,17 9,11 13,15 21,7" stroke="#0ECB81" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="15,7 21,7 21,13" stroke="#0ECB81" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tc-info"><div class="tc-name">'+volName+'</div><div class="tc-sub">Index</div></div><div class="tc-side '+sideCls+'">'+sideLbl+'</div></div>';h+='<div class="tc-meta">Tick '+entry+'</div>';h+='<span class="tc-badge">USD \u00D7'+mult+'</span>';h+=statusLbl;h+='<div class="tc-grid">';h+='<div><div class="lbl">Total profit/loss:</div><div class="val '+plCls+'">'+plStr+'</div></div>';h+='<div><div class="lbl">Contract value:</div><div class="val">0.00</div></div>';h+='<div><div class="lbl">Stake:</div><div class="val">'+stake+'</div></div>';h+='<div><div class="lbl">Potential payout:</div><div class="val">'+potential+'</div></div>';h+='</div></div>';return h;}
-function loadTxTab(body){body.innerHTML='<div class="empty"><div class="ic">&#8987;</div><div>Loading...</div></div>';api('/api/transactions').then(function(list){var rows=list.filter(function(t){return t.account===S.account||t.type==='referral_bonus';}).slice(0,80).sort(function(a,b){return b.createdAt-a.createdAt;});if(!rows.length){body.innerHTML='<div class="empty"><div class="ic">&#128203;</div><div>No transactions yet</div></div>';return;}var h='';rows.forEach(function(t){var cls='dep',label=t.type,icon='\u2193';if(t.type==='trade_stake'){cls='stake';label='Stake';icon='\u2198';}else if(t.type==='trade_win'){cls='win';label='Closed';icon='\u2197';}else if(t.type==='trade_loss'){cls='loss';label='Closed';icon='\u2198';}else if(t.type==='deposit'){cls='dep';label='Deposit';icon='\u2193';}else if(t.type==='withdrawal'){cls='wd';label='Withdrawal';icon='\u2191';}else if(t.type==='referral_bonus'){cls='win';label='Referral';icon='\uD83C\uDF81';}var amtVal=Number(t.amount)||0;var amtStr=(amtVal>=0?'+':'-')+Math.abs(amtVal).toFixed(2);if(t.type==='trade_stake')amtStr=amtVal.toFixed(2);if(t.type==='trade_loss'&&amtVal===0)amtStr='-'+Number(t.stake||0).toFixed(2);var volTag='';if(t.type==='trade_stake'||t.type==='trade_win'||t.type==='trade_loss')volTag='<span class="tx-tag">V10 (1s)</span>';var time=new Date(t.createdAt);var timeStr=(new Date().toDateString()===time.toDateString()?'Today ':'')+time.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});var prefix='';if(t.type==='trade_stake'||t.type==='trade_win'||t.type==='trade_loss')prefix='EVEN \u00B7 ';var balNow=0;if(S.user)balNow=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);h+='<div class="tx-item"><div class="tx-icon '+cls+'">'+icon+'</div><div class="tx-info"><div class="tx-line1"><span class="tx-label '+cls+'">'+label+'</span>'+volTag+'</div><div class="tx-sub">'+prefix+timeStr+'</div></div><div class="tx-amt-col"><div class="tx-amt '+cls+'">'+amtStr+'</div><div class="tx-bal">Bal: '+balNow.toFixed(2)+'</div></div></div>';});body.innerHTML=h;}).catch(function(e){body.innerHTML='<div class="empty"><div class="ic">\u26A0</div><div>'+e.message+'</div></div>';});}
+function loadTxTab(body){body.innerHTML='<div class="empty"><div class="ic">&#8987;</div><div>Loading...</div></div>';api('/api/transactions').then(function(list){var rows=list.filter(function(t){return t.account===S.account||t.type==='referral_bonus';}).slice(0,80).sort(function(a,b){return b.createdAt-a.createdAt;});if(!rows.length){body.innerHTML='<div class="empty"><div class="ic">&#128203;</div><div>No transactions yet</div></div>';return;}var h='';rows.forEach(function(t){var cls='dep',label=t.type,icon='\u2193';if(t.type==='trade_stake'){cls='stake';label='Stake';icon='\u2198';}else if(t.type==='trade_win'){cls='win';label='Closed';icon='\u2197';}else if(t.type==='trade_loss'){cls='loss';label='Closed';icon='\u2198';}else if(t.type==='deposit'){cls='dep';label='Deposit';icon='\u2193';}else if(t.type==='withdrawal'){cls='wd';label='Withdrawal';icon='\u2191';}else if(t.type==='referral_bonus'){cls='win';label='Referral';icon='\uD83C\uDF81';}
+// === Gross payout math (TagOption style) ===
+var amtVal=Number(t.amount)||0;var stakeVal=Number(t.stake)||0;var amtStr;
+if(t.type==='trade_stake'){amtStr='-'+stakeVal.toFixed(2);}
+else if(t.type==='trade_win'){amtStr='+'+(stakeVal+amtVal).toFixed(2);}
+else if(t.type==='trade_loss'){amtStr='-'+stakeVal.toFixed(2);}
+else{amtStr=(amtVal>=0?'+':'-')+Math.abs(amtVal).toFixed(2);}
+var volTag='';if(t.type==='trade_stake'||t.type==='trade_win'||t.type==='trade_loss')volTag='<span class="tx-tag">V10 (1s)</span>';var time=new Date(t.createdAt);var timeStr=(new Date().toDateString()===time.toDateString()?'Today ':'')+time.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});var prefix='';if(t.type==='trade_stake'||t.type==='trade_win'||t.type==='trade_loss')prefix='EVEN \u00B7 ';var balNow=0;if(S.user)balNow=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);h+='<div class="tx-item"><div class="tx-icon '+cls+'">'+icon+'</div><div class="tx-info"><div class="tx-line1"><span class="tx-label '+cls+'">'+label+'</span>'+volTag+'</div><div class="tx-sub">'+prefix+timeStr+'</div></div><div class="tx-amt-col"><div class="tx-amt '+cls+'">'+amtStr+'</div><div class="tx-bal">Bal: '+balNow.toFixed(2)+'</div></div></div>';});body.innerHTML=h;}).catch(function(e){body.innerHTML='<div class="empty"><div class="ic">\u26A0</div><div>'+e.message+'</div></div>';});}
 
 function updateSessionFooter(){var f=document.getElementById('posSessionFooter');if(!f)return;var s=S.session;if(!S.autoRunning||!s){f.style.display='none';return;}f.style.display='flex';if(s.profit>=S.targetProfit&&s.wins<=s.losses)s.wins=s.losses+1;if(-s.profit>=S.stopLoss&&s.losses<=s.wins)s.losses=s.wins+1;var tr=(s.wins||0)+(s.losses||0);document.getElementById('sfTrades').textContent=tr+' trade'+(tr===1?'':'s')+' ('+s.wins+'W / '+s.losses+'L)';var pl=s.profit||0;var el=document.getElementById('sfPL');el.textContent=(pl>=0?'+':'')+pl.toFixed(2)+' USD';el.className=pl>=0?'':'loss';}
 
@@ -1200,7 +1212,7 @@ function changeEmail(){var ne=document.getElementById('stNewEmail').value;var pw
 
 function pickBestVolatility(kind){var allIdx=['vol10','vol25','vol50','vol75','vol100','vol150','vol250'];var bestIdx=S.activeIndex;var bestConf=-999;for(var k=0;k<allIdx.length;k++){var idx=allIdx[k];var ticks=(S.ticks[idx]||[]).slice(-100);if(ticks.length<20)continue;var counts=[0,0,0,0,0,0,0,0,0,0];ticks.forEach(function(t){counts[t.digit]++;});var total=ticks.length;var conf=0;if(kind==='even'||kind==='odd'){var evenC=0;for(var i=0;i<10;i+=2)evenC+=counts[i];var oddC=total-evenC;var want=(kind==='even')?evenC:oddC;conf=Math.abs((want/total)*100-50);}else if(kind==='over'){var uC=0;for(var i=0;i<S.barrier;i++)uC+=counts[i];var oC=total-uC;conf=(oC/total)*100-50;}else if(kind==='under'){var uC2=0;for(var i=0;i<S.barrier;i++)uC2+=counts[i];conf=50-(uC2/total)*100;}else if(kind==='matches'||kind==='differs'){var maxD=0;for(var i=1;i<10;i++)if(counts[i]>counts[maxD])maxD=i;var maxPct=(counts[maxD]/total)*100;if(kind==='matches')conf=maxPct-10;else conf=50-maxPct/2;}if(conf>bestConf){bestConf=conf;bestIdx=idx;}}return bestIdx;}
 function switchToIndex(idx){S.activeIndex=idx;S.lastTickTime=0;cursorAnim.init=false;updateChartHeader();drawChart();renderDigitRing();}
-function startOrBuy(kind){if(S.mode==='auto'){if(S.autoRunning)return;playTradeSound(kind);S.autoRunning=true;S.autoKind=kind;S.session={trades:0,wins:0,losses:0,profit:0,ticksSeen:0,running:true,baseStake:S.stake,startTime:Date.now(),lastWasLoss:false};S.hasTradedOnce=true;var best=pickBestVolatility(kind);switchToIndex(best);renderTradePanel();toast('AUTO '+kind.toUpperCase()+' started \u2014 x'+S.multiplier,'success');setTimeout(function(){if(S.autoRunning)buy(S.autoKind);},200);}else{buy(kind);}}
+function startOrBuy(kind){if(S.mode==='auto'){if(S.autoRunning)return;playTradeSound(kind);S.autoRunning=true;S.autoKind=kind;S.session={trades:0,wins:0,losses:0,profit:0,running:true,baseStake:S.stake,startTime:Date.now(),lastWasLoss:false};S.hasTradedOnce=true;var best=pickBestVolatility(kind);switchToIndex(best);renderTradePanel();toast('AUTO '+kind.toUpperCase()+' started \u2014 x'+S.multiplier,'success');setTimeout(function(){if(S.autoRunning)buy(S.autoKind);},200);}else{buy(kind);}}
 function stopAutoRun(){S.autoRunning=false;if(S.session)S.session.running=false;renderTradePanel();}
 function setMode(m){if(m==='manual'){if(S.autoRunning)stopAutoRun();S.session=null;S.positionsSnapshot={};}S.mode=m;renderTradePanel();}
 function checkTargetStop(){if(!S.autoRunning||!S.session)return false;if(S.session.profit>=S.targetProfit){if(S.session.wins<=S.session.losses)S.session.wins=S.session.losses+1;playTPSound();stopAutoRun();showResult('win',S.session.profit);toast('Target Profit hit \u2014 bot stopped','success');return true;}if(-S.session.profit>=S.stopLoss){if(S.session.losses<=S.session.wins)S.session.losses=S.session.wins+1;playSLSound();stopAutoRun();showResult('loss',S.session.profit);toast('Stop Loss hit \u2014 bot stopped','error');return true;}return false;}
