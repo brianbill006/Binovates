@@ -200,22 +200,24 @@ body:not(.authed) #app,body:not(.authed) .bnav,body:not(.authed) .view{display:n
 .tool-sq{width:34px;height:34px;border-radius:9px;background:rgba(30,35,41,.92);border:1px solid rgba(255,255,255,.1);color:#d1d5db;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
 .tool-circle{width:38px;height:38px;border-radius:50%;background:#F0B90B;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(240,185,11,.5);margin-top:2px}
 .chart-pct{position:absolute;top:8px;right:8px;padding:5px 10px;border-radius:8px;background:rgba(30,35,41,.85);border:1px solid rgba(255,255,255,.1);color:#EAECEF;font-size:12px;font-weight:800;backdrop-filter:blur(6px)}
-.digit-ring{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:12px;transition:opacity .3s ease}
-.digit-ring.ring-off{opacity:.05}
+.digit-ring{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:12px}
 .digit-cell{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
-.digit-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;transition:border-color .12s ease,color .12s ease,background .12s ease}
+.digit-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;transition:border-color .12s ease,color .12s ease,background .12s ease,opacity .3s ease}
 .digit-circle.current{border-color:var(--blue);background:linear-gradient(135deg,#FCD535,#F0B90B);color:#181A20;box-shadow:0 0 14px rgba(240,185,11,.7)}
 .digit-circle.current.cur-win{border-color:#0ECB81;background:linear-gradient(135deg,#0ECB81,#059669);color:#fff;box-shadow:0 0 14px rgba(14,203,129,.85)}
 .digit-circle.current.cur-lose{border-color:#F6465D;background:linear-gradient(135deg,#F6465D,#dc2626);color:#fff;box-shadow:0 0 14px rgba(246,70,93,.85)}
 @keyframes digitComeGo{
-  0%  {transform:scale(1.35);box-shadow:0 0 30px currentColor}
-  60% {transform:scale(1.10);box-shadow:0 0 14px currentColor}
-  100%{transform:scale(1.00);box-shadow:0 0 6px currentColor}
+  0%  {transform:scale(1.35);opacity:1;box-shadow:0 0 30px currentColor}
+  20% {transform:scale(1.22);opacity:1;box-shadow:0 0 22px currentColor}
+  50% {transform:scale(1.10);opacity:1;box-shadow:0 0 16px currentColor}
+  80% {transform:scale(1.00);opacity:.7;box-shadow:0 0 8px currentColor}
+  100%{transform:scale(.92);opacity:.15;box-shadow:none}
 }
 .digit-circle.current.cur-win,
 .digit-circle.current.cur-lose{
-  animation:digitComeGo 260ms cubic-bezier(.2,1.4,.5,1) forwards;
+  animation:digitComeGo var(--digit-pulse-dur,1000ms) linear forwards;
 }
+.digit-ring.ring-off .digit-circle.current{opacity:.05;animation:none}
 .digit-cell.hot .digit-circle{border-color:var(--green);color:var(--green)}
 .digit-cell.cold .digit-circle{border-color:var(--red);color:var(--red)}
 .digit-cell.hot .digit-circle.current,.digit-cell.cold .digit-circle.current{color:#181A20}
@@ -1150,6 +1152,10 @@ function toggleHistorical(){S.zoom=(S.zoom||1)>=2?1:2.5;drawChart();toast(S.zoom
 
 function renderDigitRing(){
   var ring=document.getElementById('digitRing');
+  var pulseMs=(S.tickInterval||1000);
+  if(pulseMs<400)pulseMs=400;
+  if(pulseMs>3000)pulseMs=3000;
+  ring.style.setProperty('--digit-pulse-dur',pulseMs+'ms');
   var recent=(S.ticks[S.activeIndex]||[]).slice(-100);
   if(!recent.length){ring.innerHTML='';return;}
   var c=[0,0,0,0,0,0,0,0,0,0];
