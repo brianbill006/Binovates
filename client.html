@@ -202,10 +202,10 @@ body:not(.authed) #app,body:not(.authed) .bnav,body:not(.authed) .view{display:n
 .chart-pct{position:absolute;top:8px;right:8px;padding:5px 10px;border-radius:8px;background:rgba(30,35,41,.85);border:1px solid rgba(255,255,255,.1);color:#EAECEF;font-size:12px;font-weight:800;backdrop-filter:blur(6px)}
 .digit-ring{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:12px}
 .digit-cell{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
-.digit-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;transition:border-color .25s ease,color .25s ease,background .25s ease,box-shadow .25s ease}
-.digit-circle.current{border-color:var(--blue);background:linear-gradient(135deg,#FCD535,#F0B90B);color:#181A20;box-shadow:0 0 14px rgba(240,185,11,.7)}
-.digit-circle.current.cur-win{border-color:#0ECB81;background:linear-gradient(135deg,#0ECB81,#059669);color:#fff;box-shadow:0 0 14px rgba(14,203,129,.85)}
-.digit-circle.current.cur-lose{border-color:#F6465D;background:linear-gradient(135deg,#F6465D,#dc2626);color:#fff;box-shadow:0 0 14px rgba(246,70,93,.85)}
+.digit-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;transition:all .6s ease}
+.digit-circle.current{border-color:var(--blue);background:linear-gradient(135deg,#FCD535,#F0B90B);color:#181A20;box-shadow:0 0 14px rgba(240,185,11,.7);transform:scale(1.08)}
+.digit-circle.current.cur-win{border-color:#0ECB81;background:linear-gradient(135deg,#0ECB81,#059669);color:#fff;box-shadow:0 0 14px rgba(14,203,129,.85);transform:scale(1.08)}
+.digit-circle.current.cur-lose{border-color:#F6465D;background:linear-gradient(135deg,#F6465D,#dc2626);color:#fff;box-shadow:0 0 14px rgba(246,70,93,.85);transform:scale(1.08)}
 .digit-cell.hot .digit-circle{border-color:var(--green);color:var(--green)}
 .digit-cell.cold .digit-circle{border-color:var(--red);color:var(--red)}
 .digit-cell.hot .digit-circle.current,.digit-cell.cold .digit-circle.current{color:#181A20}
@@ -248,6 +248,10 @@ body:not(.authed) #app,body:not(.authed) .bnav,body:not(.authed) .view{display:n
 .session-bar .sb-mid{font-size:14px;font-variant-numeric:tabular-nums}
 .session-bar .pl-win{color:#0ECB81}
 .session-bar .pl-loss{color:#F6465D}
+.dur-row{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none}
+.dur-row::-webkit-scrollbar{display:none}
+.dur-row button{flex-shrink:0;padding:8px 14px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-size:11px;font-weight:800;color:var(--tx2)}
+.dur-row button.active{background:linear-gradient(135deg,rgba(240,185,11,.2),rgba(240,185,11,.1));border-color:var(--blue);color:var(--blue)}
 .trade-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px}
 .trade-btn{padding:14px 12px;border-radius:13px;font-weight:800;text-align:left;display:flex;flex-direction:column;gap:2px}
 .trade-btn .ttl{font-size:17px}
@@ -519,7 +523,7 @@ body.light .tool-sq{background:rgba(255,255,255,.95);border-color:rgba(0,0,0,.1)
 body.light .digit-circle{background:#F5F5F5;border-color:rgba(0,0,0,.15)}
 body.light .digit-pct{color:#5E6673}
 body.light .c-tab{background:#fff;border-color:rgba(0,0,0,.08);color:#707A8A}
-body.light .quick-amts button{background:#fff;border-color:rgba(0,0,0,.08);color:#707A8A}
+body.light .quick-amts button,body.light .dur-row button{background:#fff;border-color:rgba(0,0,0,.08);color:#707A8A}
 body.light .digits-pick button{background:#fff;border-color:rgba(0,0,0,.12);color:#1E2329}
 body.light .session-bar{background:linear-gradient(135deg,rgba(14,203,129,.08),rgba(240,185,11,.06));border-color:rgba(14,203,129,.25)}
 body.light .bnav{background:rgba(255,255,255,.98);border-color:rgba(0,0,0,.08)}
@@ -879,7 +883,7 @@ body.light .vol-row.active .vi-name{color:#C99400}
 (function(){
 'use strict';
 var STAKE_MIN=0.10,STAKE_MAX=5000;
-var S={token:null,user:null,account:'real',indices:[],activeIndex:'vol10',ticks:{},activeTab:'evenodd',prediction:5,barrier:4,stake:10,duration:5,positions:[],positionsSnapshot:{},sound:true,audioCtx:null,lastTickTime:0,resetEmail:null,botTop:null,zoom:1,mode:'manual',targetProfit:200,stopLoss:200,multiplier:2,recoveryStep:0,cursorMoveNext:false,lastMoneyEvent:null,session:null,hasTradedOnce:false,autoRunning:false,autoKind:null,posTab:'open',theme:'dark',tickInterval:1000,lastTradeStart:0};
+var S={token:null,user:null,account:'real',indices:[],activeIndex:'vol10',ticks:{},activeTab:'evenodd',prediction:5,barrier:4,stake:10,duration:5,positions:[],positionsSnapshot:{},sound:true,audioCtx:null,lastTickTime:0,resetEmail:null,botTop:null,zoom:1,mode:'manual',targetProfit:200,stopLoss:200,multiplier:2,recoveryStep:0,cursorMoveNext:false,lastMoneyEvent:null,session:null,hasTradedOnce:false,autoRunning:false,autoKind:null,posTab:'open',theme:'dark',tickInterval:1000,lockedDigit:null};
 
 function api(p,o){o=o||{};var h={'Content-Type':'application/json'};if(S.token)h['Authorization']='Bearer '+S.token;if(o.headers)for(var k in o.headers)h[k]=o.headers[k];return fetch(p,Object.assign({},o,{headers:h})).then(function(r){return r.json().catch(function(){return{};}).then(function(d){if(!r.ok)throw new Error(d.error||'Request failed');return d;});});}
 function saveToken(t,remember){try{if(remember){localStorage.setItem('tok_token',t);sessionStorage.removeItem('tok_token');}else{sessionStorage.setItem('tok_token',t);localStorage.removeItem('tok_token');}}catch(e){}}
@@ -1001,7 +1005,7 @@ function showForgot(){document.getElementById('loginBox').style.display='none';d
 function hideForgot(){document.getElementById('loginBox').style.display='block';document.getElementById('forgotBox').style.display='none';}
 document.getElementById('forgotForm').onsubmit=function(e){e.preventDefault();var err=document.getElementById('forgotError'),ok=document.getElementById('forgotOk');err.textContent='';ok.textContent='';var step1=document.getElementById('forgotStep1').style.display!=='none';if(step1){var email=document.getElementById('forgotEmail').value.trim().toLowerCase();var btn=document.getElementById('forgotSendBtn');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email';return;}btn.disabled=true;btn.textContent='Sending...';api('/api/auth/forgot',{method:'POST',body:JSON.stringify({email:email})}).then(function(r){S.resetEmail=email;document.getElementById('forgotStep1').style.display='none';document.getElementById('forgotStep2').style.display='block';document.getElementById('forgotTitle').textContent='Enter Code';document.getElementById('forgotSub').textContent='Check your email for the 6-digit code';ok.textContent=r.message||'Code sent!';}).catch(function(e2){err.textContent=e2.message;btn.disabled=false;btn.textContent='Send Reset Code';});}else{var code=document.getElementById('resetCode').value.trim();var newPw=document.getElementById('resetPassword').value;var btn2=document.getElementById('forgotResetBtn');if(code.length!==6){err.textContent='Enter the 6-digit code';return;}if(newPw.length<6){err.textContent='Password must be 6+ characters';return;}btn2.disabled=true;btn2.textContent='Resetting...';api('/api/auth/reset',{method:'POST',body:JSON.stringify({email:S.resetEmail,code:code,password:newPw})}).then(function(d){S.token=d.token;saveToken(d.token,true);S.user=d.user;hideForgot();enterApp();toast('Password reset! Welcome back','success');}).catch(function(e3){err.textContent=e3.message;btn2.disabled=false;btn2.textContent='Reset & Sign In';});}};
 function tryRestore(){var saved=loadToken();if(!saved)return Promise.resolve();S.token=saved;return api('/api/me').then(function(u){S.user=u;enterApp();}).catch(function(){S.token=null;clearToken();});}
-function logout(){S.token=null;S.user=null;S.session=null;S.autoRunning=false;S.recoveryStep=0;S.lastTradeStart=0;clearToken();closeDrawer();document.body.classList.remove('authed');document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='none';document.getElementById('landingPage').classList.remove('hidden');hideForgot();if(window._es){window._es.close();window._es=null;}authMode='login';setupAuth();toast('Signed out');}
+function logout(){S.token=null;S.user=null;S.session=null;S.autoRunning=false;S.recoveryStep=0;S.lockedDigit=null;clearToken();closeDrawer();document.body.classList.remove('authed');document.getElementById('app').style.display='none';document.getElementById('authScreen').style.display='none';document.getElementById('landingPage').classList.remove('hidden');hideForgot();if(window._es){window._es.close();window._es=null;}authMode='login';setupAuth();toast('Signed out');}
 
 var INDICES_CLIENT={vol10:{base:9534.43,vol:2.5,decimals:2},vol25:{base:6355.20,vol:5,decimals:2},vol50:{base:3428.90,vol:10,decimals:2},vol75:{base:1854.30,vol:15,decimals:2},vol100:{base:970.50,vol:20,decimals:2},vol150:{base:642.80,vol:30,decimals:2},vol250:{base:389.40,vol:50,decimals:2}};
 var INDICES_MAP={vol10:'Vol 10',vol25:'Vol 25',vol50:'Vol 50',vol75:'Vol 75',vol100:'Vol 100',vol150:'Vol 150',vol250:'Vol 250'};
@@ -1023,16 +1027,15 @@ S.lastTickTime=t.time;
 S.cursorMoveNext=true;
 playTick();
 if(S.autoRunning&&S.session){
-  var opensNow=S.positions.filter(function(p){return p.status==='open';}).length;
-  if(opensNow===0){
-    if(!checkTargetStop()){
-      var bestNow=pickBestVolatility(S.autoKind);
-      if(bestNow!==S.activeIndex)switchToIndex(bestNow);
-      S.lastTradeStart=Date.now();
-      buy(S.autoKind);
-    }
-  }
-  renderTradePanel();
+var opensNow=S.positions.filter(function(p){return p.status==='open';}).length;
+if(opensNow===0){
+if(!checkTargetStop()){
+var bestNow=pickBestVolatility(S.autoKind);
+if(bestNow!==S.activeIndex)switchToIndex(bestNow);
+buy(S.autoKind);
+}
+}
+renderTradePanel();
 }
 }
 drawChart();
@@ -1135,13 +1138,19 @@ function renderDigitRing(){
   if(!recent.length){ring.innerHTML='';return;}
   var c=[0,0,0,0,0,0,0,0,0,0];
   recent.forEach(function(t){c[t.digit]++;});
-  var cur=recent[recent.length-1].digit;
+  var liveDigit=recent[recent.length-1].digit;
+  var openP=null;
+  for(var pi=0;pi<S.positions.length;pi++){if(S.positions[pi].status==='open'){openP=S.positions[pi];break;}}
+  if(openP){
+    if(S.lockedDigit===null||S.lockedDigit===undefined)S.lockedDigit=liveDigit;
+  }else{
+    S.lockedDigit=null;
+  }
+  var cur=(S.lockedDigit!==null&&S.lockedDigit!==undefined)?S.lockedDigit:liveDigit;
   var tot=recent.length;
   var hi=0,lo=0;
   for(var i=1;i<10;i++){if(c[i]>c[hi])hi=i;if(c[i]<c[lo])lo=i;}
   var curState='';
-  var openP=null;
-  for(var pi=0;pi<S.positions.length;pi++){if(S.positions[pi].status==='open'){openP=S.positions[pi];break;}}
   if(openP){
     var r=sideOfDigit(cur,openP.kind,openP.prediction,S.barrier);
     curState=(r==='win')?'cur-win':'cur-lose';
@@ -1189,6 +1198,7 @@ if(S.session){if(ss2.profit>=S.targetProfit&&ss2.wins<=ss2.losses)ss2.wins=ss2.l
 var totalT2=ss2.wins+ss2.losses;
 var prefix=(S.autoRunning?'LIVE ':'LAST ');
 h+='<div class="session-bar"><span class="sb-left">'+prefix+totalT2+'T \u00B7 '+ss2.wins+'W \u00B7 '+ss2.losses+'L</span><b class="sb-mid '+(ss2.profit>=0?'pl-win':'pl-loss')+'">'+(ss2.profit>=0?'+':'')+'$'+ss2.profit.toFixed(2)+'</b></div>';
+h+='<div class="dur-row">'+[1,3,5,10].map(function(d){return '<button class="'+(d===S.duration?'active':'')+'" onclick="TQ.setDuration('+d+')">'+d+' tick'+(d>1?'s':'')+'</button>';}).join('')+'</div>';
 var body='';
 function btn(kind,label,colorClass,payout){var isRunning=S.autoRunning&&S.autoKind===kind;var isLocked=S.autoRunning&&S.autoKind!==kind;var payHtml='$'+payout.pay.toFixed(2)+'<br><small style="font-size:10px;opacity:.75;font-weight:600">Payout</small>';if(isRunning){return '<button class="trade-btn stop-btn" onclick="TQ.stopAutoRun()"><div class="ttl">STOP</div></button>';}if(isLocked){return '<button class="trade-btn '+colorClass+' locked-silent"><div class="ttl">'+label+'</div><div class="sub"><span>'+payout.pct+'</span><span class="payout">'+payHtml+'</span></div></button>';}return '<button class="trade-btn '+colorClass+'" onclick="TQ.startOrBuy(\''+kind+'\')"><div class="ttl">'+label+'</div><div class="sub"><span>'+payout.pct+'</span><span class="payout">'+payHtml+'</span></div></button>';}
 if(S.activeTab==='evenodd'){var pe=payoutFor('even',0,realSt),po=payoutFor('odd',0,realSt);var ePct=((pe.odds-1)*100).toFixed(1)+'%';body='<div class="trade-btns">'+btn('even','Even','green',{pct:ePct,pay:pe.payout})+btn('odd','Odd','red',{pct:ePct,pay:po.payout})+'</div>';}
@@ -1199,16 +1209,15 @@ p.innerHTML=h+body;}
 function buy(kind){if(!S.user){toast('Please sign in','error');return;}S.hasTradedOnce=true;
 var effFactor=Math.pow(S.multiplier,S.recoveryStep);
 var useStake=+(S.stake*effFactor).toFixed(2);
-if(useStake>STAKE_MAX){toast('Stake would exceed $5,000 \u2014 reset to base','error');S.recoveryStep=0;stopAutoRun();return;}
-if(S.autoRunning&&S.session&&S.stopLoss>0){
-  var roomLeft=S.stopLoss+S.session.profit;
-  if(roomLeft<=0){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss hit','error');return;}
-  if(useStake>=roomLeft){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss would be exceeded \u2014 bot stopped','error');return;}
-}
-if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}S.lastTradeStart=Date.now();var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:5,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){var msg=(e&&e.message)||'';if(msg.toLowerCase().indexOf('waiting')!==-1||msg.toLowerCase().indexOf('current trade')!==-1||msg.toLowerCase().indexOf('already')!==-1)return;toast(msg,'error');});}
+if(useStake>STAKE_MAX){toast('Recovery would exceed $5,000 \u2014 reset to base','error');S.recoveryStep=0;stopAutoRun();return;}
+if(S.autoRunning&&S.session&&S.stopLoss>0){var roomLeft=S.stopLoss+S.session.profit;if(roomLeft<=0){stopAutoRun();playSLSound();showResult('loss',S.session.profit);toast('Stop Loss hit \u2014 bot stopped','error');return;}}
+if(useStake<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}var b=S.account==='demo'?(S.user.demoBalance||0):(S.user.balance||0);if(useStake>b){toast('Insufficient balance','error');return;}
+S.lockedDigit=currentTick().digit;
+var pred=['matches','differs','over','under'].includes(kind)?(kind==='over'||kind==='under'?S.barrier:S.prediction):0;
+api('/api/trades',{method:'POST',body:JSON.stringify({account:S.account,index:S.activeIndex,kind:kind,prediction:pred,stake:useStake,duration:S.duration,multiplier:1})}).then(function(r){if(S.account==='demo')S.user.demoBalance=r.balance;else S.user.balance=r.balance;updateBalanceUI();refreshPositions();}).catch(function(e){S.lockedDigit=null;var msg=(e&&e.message)||'';if(msg.toLowerCase().indexOf('waiting')!==-1||msg.toLowerCase().indexOf('current trade')!==-1||msg.toLowerCase().indexOf('already')!==-1)return;toast(msg,'error');});}
 function kindLabel(k,p){if(k==='even')return'Even';if(k==='odd')return'Odd';if(k==='matches')return'Match '+p;if(k==='differs')return'Differ '+p;if(k==='over')return'Over '+p;if(k==='under')return'Under '+p;return k;}
 
-function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){S.cursorMoveNext=true;S.lastMoneyEvent={kind:(p.status==='won'?'win':'loss'),amount:p.profit||p.stake,ts:performance.now()};if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;S.recoveryStep=0;}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;S.recoveryStep=Math.min(S.recoveryStep+1,4);}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
+function refreshPositions(){if(!S.token)return Promise.resolve();return api('/api/trades?account='+S.account).then(function(l){var prev=S.positionsSnapshot||{};l.forEach(function(p){var old=prev[p.id];if(old&&old==='open'&&p.status!=='open'){S.cursorMoveNext=true;S.lockedDigit=null;S.lastMoneyEvent={kind:(p.status==='won'?'win':'loss'),amount:p.profit||p.stake,ts:performance.now()};if(S.autoRunning&&S.session){S.session.trades++;if(p.status==='won'){S.session.wins++;S.session.profit=+(S.session.profit+p.profit).toFixed(2);S.session.lastWasLoss=false;S.recoveryStep=0;}else{S.session.losses++;S.session.profit=+(S.session.profit-p.stake).toFixed(2);S.session.lastWasLoss=true;S.recoveryStep=Math.min(S.recoveryStep+1,4);}if(S.autoRunning){if(checkTargetStop())return;}}}});var snap={};l.forEach(function(p){snap[p.id]=p.status;});S.positionsSnapshot=snap;S.positions=l;renderPositionTab();refreshUser();updateSessionFooter();renderTradePanel();}).catch(function(){});}
 function posTab(){return S.posTab||'open';}
 function switchPosTab(t){S.posTab=t;document.querySelectorAll('.pos-tab').forEach(function(b){b.classList.toggle('active',b.dataset.ptab===t);});renderPositionTab();}
 function renderPositionTab(){var body=document.getElementById('posTabBody');if(!body)return;var open=S.positions.filter(function(p){return p.status==='open';});var closed=S.positions.filter(function(p){return p.status!=='open';});var o1=document.getElementById('ptabOpenCnt');if(o1)o1.textContent='('+open.length+')';var o2=document.getElementById('ptabClosedCnt');if(o2)o2.textContent='('+closed.length+')';var tab=posTab();if(tab==='open'){body.innerHTML=renderOpenCards(open);}else if(tab==='closed'){body.innerHTML=renderClosedCards(closed);}else{loadTxTab(body);}updatePosBadge(open.length);}
@@ -1266,16 +1275,16 @@ function changeEmail(){var ne=document.getElementById('stNewEmail').value;var pw
 
 function pickBestVolatility(kind){var allIdx=['vol10','vol25','vol50','vol75','vol100','vol150','vol250'];var bestIdx=S.activeIndex;var bestConf=-999;for(var k=0;k<allIdx.length;k++){var idx=allIdx[k];var ticks=(S.ticks[idx]||[]).slice(-100);if(ticks.length<20)continue;var counts=[0,0,0,0,0,0,0,0,0,0];ticks.forEach(function(t){counts[t.digit]++;});var total=ticks.length;var conf=0;if(kind==='even'||kind==='odd'){var evenC=0;for(var i=0;i<10;i+=2)evenC+=counts[i];var oddC=total-evenC;var want=(kind==='even')?evenC:oddC;conf=Math.abs((want/total)*100-50);}else if(kind==='over'){var uC=0;for(var i=0;i<S.barrier;i++)uC+=counts[i];var oC=total-uC;conf=(oC/total)*100-50;}else if(kind==='under'){var uC2=0;for(var i=0;i<S.barrier;i++)uC2+=counts[i];conf=50-(uC2/total)*100;}else if(kind==='matches'||kind==='differs'){var maxD=0;for(var i=1;i<10;i++)if(counts[i]>counts[maxD])maxD=i;var maxPct=(counts[maxD]/total)*100;if(kind==='matches')conf=maxPct-10;else conf=50-maxPct/2;}if(conf>bestConf){bestConf=conf;bestIdx=idx;}}return bestIdx;}
 function switchToIndex(idx){S.activeIndex=idx;S.lastTickTime=0;cursorAnim.init=false;updateChartHeader();drawChart();renderDigitRing();}
-function startOrBuy(kind){if(S.mode==='auto'){if(S.autoRunning)return;playTradeSound(kind);S.autoRunning=true;S.autoKind=kind;S.recoveryStep=0;S.session={trades:0,wins:0,losses:0,profit:0,running:true,baseStake:S.stake,startTime:Date.now(),lastWasLoss:false};S.lastTradeStart=Date.now();S.hasTradedOnce=true;var best=pickBestVolatility(kind);switchToIndex(best);renderTradePanel();setTimeout(function(){if(S.autoRunning)buy(S.autoKind);},200);}else{buy(kind);}}
-function stopAutoRun(){S.autoRunning=false;if(S.session)S.session.running=false;S.recoveryStep=0;S.lastTradeStart=0;renderTradePanel();}
-function setMode(m){if(m==='manual'){if(S.autoRunning)stopAutoRun();S.session=null;S.positionsSnapshot={};S.lastTradeStart=0;}S.mode=m;renderTradePanel();}
+function startOrBuy(kind){if(S.mode==='auto'){if(S.autoRunning)return;playTradeSound(kind);S.autoRunning=true;S.autoKind=kind;S.recoveryStep=0;S.session={trades:0,wins:0,losses:0,profit:0,running:true,baseStake:S.stake,startTime:Date.now(),lastWasLoss:false};S.hasTradedOnce=true;var best=pickBestVolatility(kind);switchToIndex(best);renderTradePanel();setTimeout(function(){if(S.autoRunning)buy(S.autoKind);},200);}else{buy(kind);}}
+function stopAutoRun(){S.autoRunning=false;if(S.session)S.session.running=false;S.recoveryStep=0;renderTradePanel();}
+function setMode(m){if(m==='manual'){if(S.autoRunning)stopAutoRun();S.session=null;S.positionsSnapshot={};}S.mode=m;renderTradePanel();}
 function checkTargetStop(){if(!S.autoRunning||!S.session)return false;if(S.session.profit>=S.targetProfit){if(S.session.wins<=S.session.losses)S.session.wins=S.session.losses+1;playTPSound();stopAutoRun();showResult('win',S.session.profit);return true;}if(-S.session.profit>=S.stopLoss){if(S.session.losses<=S.session.wins)S.session.losses=S.session.wins+1;playSLSound();stopAutoRun();showResult('loss',S.session.profit);return true;}return false;}
 function showResult(kind,amount){var modal=document.getElementById('resultModal');var card=document.getElementById('rmCard');card.className='result-modal-card '+kind;document.getElementById('rmIcon').textContent=kind==='win'?'\u2713':'\u2715';document.getElementById('rmTitle').textContent=kind==='win'?'Target Profit Hit! \uD83C\uDF89':'Stop Loss Hit';var amt=Math.abs(amount).toFixed(2);document.getElementById('rmAmount').textContent=(kind==='win'?'+':'-')+'$'+amt+' USD';var s=S.session||{trades:0,wins:0,losses:0};if(kind==='win'&&s.wins<=s.losses)s.wins=s.losses+1;if(kind==='loss'&&s.losses<=s.wins)s.losses=s.wins+1;var totalT=s.wins+s.losses;document.getElementById('rmTrades').textContent=totalT;document.getElementById('rmWins').textContent=s.wins+'W';document.getElementById('rmLosses').textContent=s.losses+'L';var rate=totalT>0?(s.wins/totalT*100).toFixed(1):'0.0';document.getElementById('rmRate').textContent=rate+'%';modal.classList.add('show');}
 function hideResult(){document.getElementById('resultModal').classList.remove('show');}
 
 function adjustStake(dir){var cur=S.stake;var next;if(cur<=1||(cur<=1.0001&&dir<0)){next=+(cur+dir*0.10).toFixed(2);if(next<0.10)next=0.10;if(next>1)next=1.00;}else if(cur<2&&dir<0){next=+(cur-0.10).toFixed(2);if(next<1)next=1.00;}else{next=cur+dir*1;if(next<1)next=1.00;if(next>STAKE_MAX)next=STAKE_MAX;}if(next<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(next>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=next;S.recoveryStep=0;renderTradePanel();}
 function setStake(v){v=Number(v);if(v<STAKE_MIN-0.001){toast('Minimum stake is $0.10','error');return;}if(v>STAKE_MAX+0.001){toast('Maximum stake is $5,000','error');return;}S.stake=v;S.recoveryStep=0;renderTradePanel();}
-function setDuration(v){S.duration=5;}
+function setDuration(v){S.duration=v;renderTradePanel();}
 function setPrediction(d){S.prediction=d;renderTradePanel();}
 function setBarrier(d){S.barrier=d;renderTradePanel();}
 
